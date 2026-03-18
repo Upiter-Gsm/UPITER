@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Фотосалон Юпитер в Костанае — фотопечать, фото на документы, ламинирование, сканирование и другие услуги. ул. Толстого 62." />
+  <meta name="theme-color" content="#060606" />
+  <title>Юпитер — Фотосалон, Костанай</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+
+  <style>
+  /* ═══════════════════════════ TOKENS ═══════════════════════════ */
+  :root {
+    --black: #060606;
+    --white: #f4f4ef;
+    --g0: #0d0d0d;
+    --g1: #161616;
+    --g2: #1f1f1f;
+    --g3: #2b2b2b;
+    --g4: #444;
+    --g5: #666;
+    --g6: #999;
+    --accent: #c9ba9b;
+    --fd: 'Bebas Neue', sans-serif;
+    --fs: 'Cormorant Garamond', Georgia, serif;
+    --fm: 'Space Mono', monospace;
+    --ease: cubic-bezier(0.16,1,0.3,1);
+    --ease2: cubic-bezier(0.65,0,0.35,1);
+  }
+
+  /* ═══════════════════════════ RESET ════════════════════════════ */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;font-size:clamp(14px,1.05vw,16px)}
+  body{background:var(--black);color:var(--white);font-family:var(--fs);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;cursor:none}
+  @media(pointer:coarse){body,html{cursor:auto}}
+  ::selection{background:var(--white);color:var(--black)}
+  img{display:block;max-width:100%}
+  a{color:inherit;text-decoration:none}
+  button{background:none;border:none;font:inherit;color:inherit;cursor:none}
+  @media(pointer:coarse){button{cursor:pointer}}
+
+  /* ═══════════════════════════ GRAIN ════════════════════════════ */
+  #grain{position:fixed;inset:-100%;width:300%;height:300%;pointer-events:none;z-index:9980;opacity:.032;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain .4s steps(1) infinite}
+  @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-4%,-2%)}40%{transform:translate(2%,-4%)}60%{transform:translate(-2%,4%)}80%{transform:translate(4%,2%)}100%{transform:translate(-2%,-4%)}}
+  #vig{position:fixed;inset:0;pointer-events:none;z-index:9979;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.65) 100%)}
+  #pbar{position:fixed;top:0;left:0;height:1px;background:var(--white);z-index:9990;width:0;transition:width .05s linear}
+
+  /* ═══════════════════════════ CURSOR ════════════════════════════ */
+  .cur{position:fixed;pointer-events:none;z-index:9999;top:0;left:0}
+  #cdot{width:8px;height:8px;background:var(--white);border-radius:50%;transform:translate(-50%,-50%);mix-blend-mode:difference;transition:width .2s var(--ease),height .2s var(--ease)}
+  #cring{width:32px;height:32px;border:1px solid rgba(244,244,239,.4);border-radius:50%;transform:translate(-50%,-50%);transition:width .3s var(--ease),height .3s var(--ease),opacity .3s,border-color .3s}
+  body.hov #cdot{width:5px;height:5px}
+  body.hov #cring{width:50px;height:50px;border-color:rgba(244,244,239,.2)}
+  @media(pointer:coarse){.cur{display:none}}
+
+  /* ═══════════════════════════ LOADER ════════════════════════════ */
+  #loader{position:fixed;inset:0;background:var(--black);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .7s var(--ease2),visibility .7s}
+  #loader.out{opacity:0;visibility:hidden}
+  .ld-logo{width:64px;filter:invert(1);animation:ldp 1.4s ease-in-out infinite alternate}
+  @keyframes ldp{from{opacity:.2}to{opacity:1}}
+  .ld-track{width:180px;height:1px;background:var(--g3);overflow:hidden}
+  .ld-fill{height:100%;background:var(--white);width:0;transition:width .08s linear}
+  .ld-txt{font-family:var(--fm);font-size:.58rem;letter-spacing:.35em;color:var(--g5);text-transform:uppercase}
+
+  /* ═══════════════════════════ NAV ═══════════════════════════════ */
+  #nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:20px 48px;transition:padding .4s var(--ease),background .4s,border-color .4s;border-bottom:1px solid transparent}
+  #nav.stuck{padding:12px 48px;background:rgba(6,6,6,.93);backdrop-filter:blur(24px);border-color:var(--g3)}
+  .nav-logo{display:flex;align-items:center;gap:12px;transition:opacity .3s}
+  .nav-logo:hover{opacity:.7}
+  .nav-logo img{height:32px;width:auto;filter:invert(1)}
+  .nav-logo-name{font-family:var(--fd);font-size:1.35rem;letter-spacing:.12em;line-height:1}
+  .nav-links{display:flex;align-items:center;gap:36px;list-style:none}
+  .nav-links a{font-family:var(--fm);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g5);transition:color .3s;position:relative;padding-bottom:2px}
+  .nav-links a::after{content:'';position:absolute;bottom:-2px;left:0;width:0;height:1px;background:var(--white);transition:width .4s var(--ease)}
+  .nav-links a:hover{color:var(--white)}
+  .nav-links a:hover::after{width:100%}
+  .nav-wa{display:inline-flex;align-items:center;gap:8px;background:var(--white);color:var(--black);padding:9px 18px;font-family:var(--fm);font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;border:1px solid transparent;transition:background .3s,color .3s,border-color .3s,transform .3s var(--ease)}
+  .nav-wa:hover{background:transparent;color:var(--white);border-color:var(--white);transform:translateY(-2px)}
+  .nav-wa svg{width:13px;height:13px;fill:currentColor}
+  .burger{display:none;flex-direction:column;gap:5px;padding:6px;background:none;border:none;cursor:pointer}
+  .burger span{display:block;width:22px;height:1px;background:var(--white);transition:transform .4s var(--ease),opacity .3s}
+  .burger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+  .burger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+  .burger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+
+  /* ═══════════════════════════ MOBILE MENU ═══════════════════════ */
+  #mmenu{position:fixed;inset:0;background:var(--black);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transform:translateX(100%);transition:transform .55s var(--ease)}
+  #mmenu.open{transform:translateX(0)}
+  .mm-link{font-family:var(--fd);font-size:clamp(2.2rem,7vw,3.4rem);letter-spacing:.08em;color:var(--g4);transition:color .3s,transform .3s var(--ease);display:block}
+  .mm-link:hover{color:var(--white);transform:translateX(8px)}
+  .mm-wa{margin-top:12px;display:inline-flex;align-items:center;gap:10px;border:1px solid var(--g3);padding:13px 26px;font-family:var(--fm);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--g5);transition:color .3s,border-color .3s}
+  .mm-wa:hover{color:var(--white);border-color:var(--white)}
+  .mm-wa svg{width:14px;height:14px;fill:currentColor}
+
+  /* ═══════════════════════════ HERO ══════════════════════════════ */
+  #hero{min-height:100svh;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:0 48px 80px}
+  .hero-grid{position:absolute;inset:0;z-index:0;background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);background-size:72px 72px;mask-image:radial-gradient(ellipse 70% 70% at 50% 40%,black 0%,transparent 100%)}
+  .scanlines{position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.1) 3px,rgba(0,0,0,.1) 4px)}
+  .orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(100px)}
+  .orb-a{width:700px;height:700px;top:-15%;right:-10%;background:radial-gradient(circle,rgba(255,255,255,.05) 0%,transparent 70%);animation:orbA 14s ease-in-out infinite alternate}
+  .orb-b{width:450px;height:450px;bottom:5%;left:-8%;background:radial-gradient(circle,rgba(201,186,155,.04) 0%,transparent 70%);animation:orbA 10s ease-in-out infinite alternate-reverse}
+  @keyframes orbA{from{transform:translate(0,0) scale(1)}to{transform:translate(40px,-50px) scale(1.08)}}
+  .hero-content{position:relative;z-index:2;max-width:1100px}
+  .hero-eyebrow{display:inline-flex;align-items:center;gap:14px;font-family:var(--fm);font-size:.58rem;letter-spacing:.35em;text-transform:uppercase;color:var(--accent);margin-bottom:28px;opacity:0;transform:translateY(16px);animation:up .7s var(--ease) .5s forwards}
+  .hero-eyebrow::before{content:'';width:36px;height:1px;background:var(--accent)}
+  .hero-h1{font-family:var(--fd);font-size:clamp(4rem,12vw,11rem);line-height:.87;letter-spacing:-.01em;text-transform:uppercase;opacity:0;transform:translateY(40px);animation:up .95s var(--ease) .7s forwards}
+  .hero-h1 em{font-family:var(--fs);font-style:italic;font-weight:300;font-size:.52em;display:block;color:var(--g5);line-height:1.3;letter-spacing:.02em;text-transform:none;margin-top:6px}
+  .hero-sub{font-family:var(--fs);font-size:clamp(.95rem,1.3vw,1.15rem);font-weight:300;color:var(--g6);max-width:440px;margin-top:26px;line-height:1.8;opacity:0;transform:translateY(16px);animation:up .8s var(--ease) .9s forwards}
+  .hero-ctas{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:40px;opacity:0;transform:translateY(16px);animation:up .8s var(--ease) 1.1s forwards}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:13px 28px;font-family:var(--fm);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;transition:background .3s,color .3s,border-color .3s,transform .3s var(--ease),box-shadow .3s;border:1px solid transparent}
+  .btn-solid{background:var(--white);color:var(--black)}
+  .btn-solid:hover{background:transparent;color:var(--white);border-color:var(--white);transform:translateY(-3px);box-shadow:0 12px 40px rgba(255,255,255,.07)}
+  .btn-ghost{color:var(--g6);border-color:var(--g3)}
+  .btn-ghost:hover{color:var(--white);border-color:var(--white);transform:translateY(-3px)}
+  .btn svg{width:13px;height:13px;fill:currentColor}
+  .hero-scroll{position:absolute;bottom:36px;right:48px;z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;animation:fi .8s ease 1.6s forwards}
+  .hero-scroll span{font-family:var(--fm);font-size:.5rem;letter-spacing:.3em;text-transform:uppercase;color:var(--g5);writing-mode:vertical-rl}
+  .scroll-line{width:1px;height:52px;background:linear-gradient(to bottom,transparent,var(--g4));animation:scrl 1.8s ease-in-out infinite}
+  @keyframes scrl{0%,100%{opacity:.3;transform:scaleY(.4);transform-origin:top}50%{opacity:1;transform:scaleY(1)}}
+  @keyframes up{to{opacity:1;transform:translateY(0)}}
+  @keyframes fi{to{opacity:1}}
+
+  /* ═══════════════════════════ MARQUEE ═══════════════════════════ */
+  .mq-wrap{border-top:1px solid var(--g3);border-bottom:1px solid var(--g3);background:var(--g0);overflow:hidden;padding:17px 0}
+  .mq-track{display:flex;width:max-content;animation:mq 32s linear infinite}
+  .mq-track:hover{animation-play-state:paused}
+  @keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .mq-item{display:inline-flex;align-items:center;gap:40px;padding:0 40px;font-family:var(--fd);font-size:1.1rem;letter-spacing:.12em;color:var(--g4);text-transform:uppercase;white-space:nowrap}
+  .mq-dot{width:4px;height:4px;border-radius:50%;background:var(--accent);flex-shrink:0}
+
+  /* ═══════════════════════════ SECTION BASE ══════════════════════ */
+  .sec{padding:110px 48px}
+  .sec+.sec{border-top:1px solid var(--g3)}
+  .sec-in{max-width:1360px;margin:0 auto}
+  .sec-lbl{display:inline-flex;align-items:center;gap:12px;font-family:var(--fm);font-size:.56rem;letter-spacing:.38em;text-transform:uppercase;color:var(--g5);margin-bottom:18px}
+  .sec-lbl::before{content:'';width:22px;height:1px;background:var(--g4)}
+  .sec-ttl{font-family:var(--fd);font-size:clamp(2.6rem,5vw,4.8rem);text-transform:uppercase;line-height:.9;letter-spacing:-.01em}
+  .sec-ttl em{font-family:var(--fs);font-style:italic;font-weight:300;font-size:.6em;display:block;color:var(--g5);text-transform:none;letter-spacing:.02em;margin-top:4px}
+  .rv{opacity:0;transform:translateY(32px);transition:opacity .85s var(--ease),transform .85s var(--ease)}
+  .rv.in{opacity:1;transform:translateY(0)}
+  .d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}.d5{transition-delay:.5s}
+
+  /* ═══════════════════════════ ABOUT ═════════════════════════════ */
+  .about-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:100px;align-items:start}
+  .about-sticky{position:sticky;top:96px}
+  .about-meta{margin-top:40px}
+  .about-row{display:flex;justify-content:space-between;align-items:flex-start;padding:15px 0;border-bottom:1px solid var(--g3);gap:16px}
+  .about-row:first-child{border-top:1px solid var(--g3)}
+  .about-key{font-family:var(--fm);font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g5);flex-shrink:0;padding-top:3px}
+  .about-val{font-family:var(--fs);font-size:.95rem;color:var(--white);text-align:right;line-height:1.55}
+  .about-val a{transition:color .3s}
+  .about-val a:hover{color:var(--accent)}
+  .about-txt p{font-size:clamp(.95rem,1.4vw,1.2rem);font-weight:300;color:var(--g6);line-height:1.85;margin-bottom:22px}
+  .about-txt p strong{color:var(--white);font-weight:400}
+  .about-txt blockquote{border-left:1px solid var(--g3);padding:12px 0 12px 26px;margin:38px 0;font-family:var(--fs);font-style:italic;font-weight:300;font-size:clamp(1.2rem,2vw,1.65rem);color:var(--white);line-height:1.5}
+  .social-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px}
+  .soc-btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--fm);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--g5);border:1px solid var(--g3);padding:7px 13px;transition:color .3s,border-color .3s}
+  .soc-btn:hover{color:var(--white);border-color:var(--g5)}
+  .soc-btn svg{width:11px;height:11px;fill:currentColor}
+
+  /* ═══════════════════════════ PRINT SECTION ═════════════════════ */
+  .print-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:56px}
+  .info-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--fm);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--g5);border:1px solid var(--g3);padding:10px 16px;transition:color .3s,border-color .3s;cursor:pointer}
+  .info-btn:hover{color:var(--white);border-color:var(--g5)}
+  .info-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5}
+
+  /* Desktop table */
+  #pt{width:100%;border-collapse:collapse}
+  #pt thead tr{border-bottom:1px solid var(--g3)}
+  #pt th{font-family:var(--fm);font-size:.56rem;letter-spacing:.25em;text-transform:uppercase;color:var(--g5);padding:13px 18px;text-align:left;font-weight:400}
+  #pt th:last-child{text-align:right}
+  #pt td{padding:18px 18px;border-bottom:1px solid var(--g2);vertical-align:middle}
+  #pt tr:hover td{background:rgba(255,255,255,.015)}
+  .pt-size{font-family:var(--fd);font-size:1.55rem;letter-spacing:.06em;text-transform:uppercase}
+  .pt-badge{font-family:var(--fm);font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--g5);background:var(--g2);padding:3px 8px;display:inline-block}
+  .pt-price{font-family:var(--fm);font-size:.82rem;color:var(--white);text-align:right;min-width:90px}
+  .pt-wa{display:inline-flex;align-items:center;gap:6px;font-family:var(--fm);font-size:.54rem;letter-spacing:.14em;text-transform:uppercase;color:var(--g5);padding:8px 13px;border:1px solid var(--g2);white-space:nowrap;transition:color .3s,background .3s,border-color .3s}
+  .pt-wa:hover{color:var(--black);background:var(--white);border-color:var(--white)}
+  .pt-wa svg{width:11px;height:11px;fill:currentColor}
+
+  /* Mobile price cards */
+  #pc{display:none;flex-direction:column;gap:2px}
+  .pc-card{background:var(--g1);padding:22px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+  .pc-size{font-family:var(--fd);font-size:1.45rem;letter-spacing:.05em;text-transform:uppercase;line-height:1}
+  .pc-right{display:flex;flex-direction:column;gap:7px;align-items:flex-end}
+  .pc-row{display:flex;align-items:center;gap:7px}
+  .pc-badge{font-family:var(--fm);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--g5);background:var(--g2);padding:2px 7px}
+  .pc-price{font-family:var(--fm);font-size:.78rem;color:var(--white)}
+  .pc-wa{display:inline-flex;align-items:center;gap:5px;font-family:var(--fm);font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--g5);padding:7px 11px;border:1px solid var(--g3);margin-top:6px;transition:color .3s,background .3s,border-color .3s}
+  .pc-wa:hover{color:var(--black);background:var(--white);border-color:var(--white)}
+  .pc-wa svg{width:10px;height:10px;fill:currentColor}
+
+  /* ═══════════════════════════ SERVICES ══════════════════════════ */
+  .srv-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:44px}
+  .srv-sub{font-family:var(--fs);font-size:.92rem;color:var(--g5);max-width:300px;font-weight:300;line-height:1.7;text-align:right}
+  .srv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:2px}
+  .srv-card{background:var(--g1);padding:32px 26px;display:flex;flex-direction:column;justify-content:space-between;min-height:230px;position:relative;overflow:hidden;transition:background .4s;cursor:pointer;outline:none}
+  .srv-card:hover,.srv-card:focus-visible{background:var(--g2)}
+  .srv-card:focus-visible{outline:1px solid var(--g4)}
+  .srv-top{display:flex;justify-content:space-between;align-items:flex-start}
+  .srv-icon{font-size:1.7rem;line-height:1}
+  .srv-num{font-family:var(--fm);font-size:.52rem;letter-spacing:.25em;color:var(--g4)}
+  .srv-name{font-family:var(--fd);font-size:1.25rem;letter-spacing:.06em;text-transform:uppercase;color:var(--white);margin-top:24px;line-height:1.1}
+  .srv-bot{margin-top:16px;display:flex;flex-direction:column;gap:6px}
+  .srv-price-row{display:flex;align-items:baseline;gap:7px}
+  .srv-price{font-family:var(--fm);font-size:.86rem;color:var(--white)}
+  .srv-unit{font-family:var(--fm);font-size:.52rem;letter-spacing:.12em;color:var(--g5)}
+  .srv-wa{display:inline-flex;align-items:center;gap:6px;font-family:var(--fm);font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;color:var(--g5);padding:9px 14px;border:1px solid var(--g3);margin-top:10px;align-self:flex-start;transition:color .3s,background .3s,border-color .3s}
+  .srv-wa:hover{color:var(--black);background:var(--white);border-color:var(--white)}
+  .srv-wa svg{width:12px;height:12px;fill:currentColor}
+
+  /* ═══════════════════════════ HOURS ═════════════════════════════ */
+  .hours-grid{display:grid;grid-template-columns:1fr 2fr;gap:80px;align-items:start}
+  .hours-sticky{position:sticky;top:96px}
+  .hours-note{margin-top:22px;font-family:var(--fs);font-size:.92rem;color:var(--g5);font-weight:300;line-height:1.7;max-width:240px}
+  .hour-tbl{display:flex;flex-direction:column}
+  .hour-row{display:grid;grid-template-columns:1fr auto;align-items:center;padding:17px 14px;border-bottom:1px solid var(--g2);position:relative;overflow:hidden;transition:padding-left .35s var(--ease)}
+  .hour-row:first-child{border-top:1px solid var(--g2)}
+  .hour-row::before{content:'';position:absolute;inset:0;background:var(--g1);transform:scaleX(0);transform-origin:left;transition:transform .45s var(--ease);z-index:0}
+  .hour-row:hover::before{transform:scaleX(1)}
+  .hour-row:hover{padding-left:20px}
+  .h-day{font-family:var(--fd);font-size:1.45rem;letter-spacing:.05em;text-transform:uppercase;position:relative;z-index:1}
+  .h-time{font-family:var(--fm);font-size:.78rem;letter-spacing:.08em;color:var(--white);position:relative;z-index:1;display:flex;align-items:center;gap:9px}
+  .hour-row.day-off .h-day,.hour-row.day-off .h-time{color:var(--g4)}
+  .hdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .dot-on{background:var(--white);box-shadow:0 0 8px rgba(255,255,255,.5);animation:dp 2s ease-in-out infinite}
+  .dot-off{background:var(--g4)}
+  .hour-today{background:rgba(255,255,255,.02)}
+  @keyframes dp{0%,100%{box-shadow:0 0 4px rgba(255,255,255,.3)}50%{box-shadow:0 0 14px rgba(255,255,255,.8)}}
+
+  /* ═══════════════════════════ CONTACT ═══════════════════════════ */
+  #contact{background:var(--g0)}
+  .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start}
+  .contact-big{font-family:var(--fd);font-size:clamp(3rem,7vw,7rem);text-transform:uppercase;line-height:.88;letter-spacing:-.01em}
+  .contact-big em{font-family:var(--fs);font-style:italic;font-weight:300;font-size:.42em;display:block;color:var(--g5);text-transform:none;letter-spacing:.02em}
+  .ci-list{display:flex;flex-direction:column}
+  .ci{padding:22px 0;border-bottom:1px solid var(--g3)}
+  .ci:first-child{border-top:1px solid var(--g3)}
+  .ci-lbl{font-family:var(--fm);font-size:.56rem;letter-spacing:.3em;text-transform:uppercase;color:var(--g5);margin-bottom:7px}
+  .ci-val{font-family:var(--fs);font-size:1rem;color:var(--white);line-height:1.55}
+  .ci-val a{transition:color .3s}
+  .ci-val a:hover{color:var(--accent)}
+  .wa-big{display:inline-flex;align-items:center;gap:11px;background:var(--white);color:var(--black);padding:16px 32px;margin-top:11px;font-family:var(--fm);font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;border:1px solid transparent;transition:background .3s,color .3s,border-color .3s,transform .35s var(--ease),box-shadow .35s}
+  .wa-big:hover{background:transparent;color:var(--white);border-color:var(--white);transform:translateY(-4px);box-shadow:0 16px 50px rgba(255,255,255,.06)}
+  .wa-big svg{width:17px;height:17px;fill:currentColor}
+  .map-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--fm);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--g5);border:1px solid var(--g3);padding:11px 18px;margin-top:9px;transition:color .3s,border-color .3s}
+  .map-btn:hover{color:var(--white);border-color:var(--g5)}
+  .map-btn svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.5}
+
+  /* ═══════════════════════════ FOOTER ════════════════════════════ */
+  footer{border-top:1px solid var(--g3);background:var(--g0);padding:28px 48px}
+  .foot-in{max-width:1360px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .foot-logo{display:flex;align-items:center;gap:10px}
+  .foot-logo img{height:22px;filter:invert(1);opacity:.4}
+  .foot-copy{font-family:var(--fm);font-size:.54rem;letter-spacing:.15em;color:var(--g4);text-transform:uppercase}
+  .foot-nav{display:flex;gap:24px;list-style:none}
+  .foot-nav a{font-family:var(--fm);font-size:.54rem;letter-spacing:.15em;text-transform:uppercase;color:var(--g4);transition:color .3s}
+  .foot-nav a:hover{color:var(--white)}
+
+  /* ═══════════════════════════ FLOAT WA ══════════════════════════ */
+  #fwa{position:fixed;bottom:30px;right:30px;z-index:988;width:52px;height:52px;background:var(--white);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 32px rgba(0,0,0,.6);transition:transform .35s var(--ease),box-shadow .35s,background .3s}
+  #fwa:hover{transform:scale(1.1) rotate(-6deg);background:var(--black);box-shadow:0 12px 50px rgba(255,255,255,.12)}
+  #fwa svg{width:23px;height:23px;fill:var(--black);transition:fill .3s}
+  #fwa:hover svg{fill:var(--white)}
+  .fwa-tip{position:absolute;right:62px;top:50%;transform:translateY(-50%) translateX(8px);background:var(--g1);border:1px solid var(--g3);color:var(--white);padding:6px 11px;font-family:var(--fm);font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .3s var(--ease),transform .3s var(--ease)}
+  #fwa:hover .fwa-tip{opacity:1;transform:translateY(-50%) translateX(0)}
+
+  /* ═══════════════════════════ MODAL ═════════════════════════════ */
+  #mo{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.88);backdrop-filter:blur(14px);display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;transition:opacity .4s var(--ease),visibility .4s;padding:0}
+  #mo.open{opacity:1;visibility:visible}
+  #mdl{background:var(--g0);border-top:1px solid var(--g3);width:100%;max-width:660px;max-height:90svh;overflow-y:auto;transform:translateY(100%);transition:transform .5s var(--ease);position:relative;scrollbar-width:thin;scrollbar-color:var(--g3) transparent}
+  #mdl::-webkit-scrollbar{width:3px}
+  #mdl::-webkit-scrollbar-thumb{background:var(--g3)}
+  #mo.open #mdl{transform:translateY(0)}
+  .mdl-handle{width:34px;height:3px;background:var(--g3);border-radius:2px;margin:14px auto 0}
+  .mdl-in{padding:28px 36px 44px}
+  .mdl-tag{font-family:var(--fm);font-size:.55rem;letter-spacing:.3em;text-transform:uppercase;color:var(--g5);margin-bottom:10px}
+  .mdl-ttl{font-family:var(--fd);font-size:clamp(1.8rem,5vw,3rem);text-transform:uppercase;letter-spacing:.03em;line-height:.9;margin-bottom:24px}
+  .mdl-body{font-family:var(--fs);font-size:.98rem;font-weight:300;color:var(--g6);line-height:1.8}
+  .mdl-body p{margin-bottom:14px}
+  .mdl-body p:last-child{margin-bottom:0}
+  .mdl-body strong{color:var(--white);font-weight:400}
+  .mdl-div{height:1px;background:var(--g3);margin:24px 0}
+  .mdl-tips{font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;color:var(--g5);line-height:1.9}
+  .mdl-tip{display:flex;align-items:flex-start;gap:9px;margin-bottom:7px}
+  .mdl-tip::before{content:'→';color:var(--accent);flex-shrink:0}
+  .mdl-price-blk{background:var(--g1);padding:18px 20px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  .mdl-price-name{font-family:var(--fs);font-size:.98rem;color:var(--white);font-weight:300}
+  .mdl-price-val{font-family:var(--fm);font-size:.88rem;color:var(--white)}
+  .mdl-price-unit{font-family:var(--fm);font-size:.55rem;letter-spacing:.12em;color:var(--g5);margin-left:6px}
+  .mdl-close{position:absolute;top:18px;right:18px;width:34px;height:34px;border:1px solid var(--g3);display:flex;align-items:center;justify-content:center;background:none;cursor:pointer;padding:0;transition:border-color .3s,background .3s}
+  .mdl-close:hover{background:var(--g2);border-color:var(--g5)}
+  .mdl-close svg{width:13px;height:13px;stroke:var(--g5);stroke-width:1.5;fill:none;transition:stroke .3s}
+  .mdl-close:hover svg{stroke:var(--white)}
+  .mdl-wa{display:inline-flex;align-items:center;gap:9px;background:var(--white);color:var(--black);padding:13px 26px;margin-top:24px;font-family:var(--fm);font-size:.62rem;letter-spacing:.17em;text-transform:uppercase;border:1px solid transparent;transition:background .3s,color .3s,border-color .3s,transform .3s var(--ease)}
+  .mdl-wa:hover{background:transparent;color:var(--white);border-color:var(--white);transform:translateY(-2px)}
+  .mdl-wa svg{width:15px;height:15px;fill:currentColor}
+
+  /* ═══════════════════════════ RESPONSIVE ════════════════════════ */
+  @media(max-width:1100px){
+    .about-grid{grid-template-columns:1fr;gap:60px}
+    .about-sticky{position:static}
+    .hours-grid{grid-template-columns:1fr;gap:40px}
+    .hours-sticky{position:static}
+    .contact-grid{grid-template-columns:1fr;gap:56px}
+    .print-head{flex-direction:column;align-items:flex-start}
+    .srv-head{flex-direction:column;align-items:flex-start}
+    .srv-sub{text-align:left}
+  }
+  @media(max-width:860px){
+    .sec{padding:76px 24px}
+    #nav{padding:15px 24px}
+    #nav.stuck{padding:11px 24px}
+    .nav-links,.nav-wa{display:none}
+    .burger{display:flex}
+    #hero{padding:0 24px 60px}
+    .hero-scroll{right:24px;bottom:24px}
+    #pt-wrap{display:none!important}
+    #pc{display:flex!important}
+    footer{padding:24px}
+    .foot-in{flex-direction:column;align-items:flex-start;gap:14px}
+    .mdl-in{padding:22px 18px 36px}
+  }
+  @media(max-width:520px){
+    .hero-ctas{flex-direction:column;align-items:flex-start}
+    .srv-grid{grid-template-columns:1fr}
+    .foot-nav{flex-wrap:wrap;gap:14px}
+    #fwa{bottom:20px;right:20px;width:46px;height:46px}
+    #fwa svg{width:20px;height:20px}
+  }
+  </style>
+</head>
+<body>
+
+<div id="grain" aria-hidden="true"></div>
+<div id="vig"   aria-hidden="true"></div>
+<div id="pbar"  aria-hidden="true"></div>
+
+<div class="cur" id="cdot-wrap"><div id="cdot"></div></div>
+<div class="cur" id="cring-wrap"><div id="cring"></div></div>
+
+<!-- LOADER -->
+<div id="loader" role="status" aria-label="Загрузка">
+  <img src="image/logo.png" alt="" class="ld-logo" />
+  <div class="ld-track"><div class="ld-fill" id="ld-fill"></div></div>
+  <span class="ld-txt">Загрузка данных...</span>
+</div>
+
+<!-- MOBILE MENU -->
+<div id="mmenu" role="dialog" aria-modal="true" aria-label="Навигация">
+  <a href="#about"    class="mm-link" onclick="closeMM()">О нас</a>
+  <a href="#print"    class="mm-link" onclick="closeMM()">Фотопечать</a>
+  <a href="#services" class="mm-link" onclick="closeMM()">Услуги</a>
+  <a href="#hours"    class="mm-link" onclick="closeMM()">График</a>
+  <a href="#contact"  class="mm-link" onclick="closeMM()">Контакты</a>
+  <a href="https://wa.me/77772374343" class="mm-wa" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    WhatsApp
+  </a>
+</div>
+
+<!-- NAV -->
+<nav id="nav" role="navigation" aria-label="Главное меню">
+  <a href="#" class="nav-logo" aria-label="На главную">
+    <img src="image/logo.png" alt="Юпитер" />
+    <span class="nav-logo-name">Юпитер</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#about">О нас</a></li>
+    <li><a href="#print">Фотопечать</a></li>
+    <li><a href="#services">Услуги</a></li>
+    <li><a href="#hours">График</a></li>
+    <li><a href="#contact">Контакты</a></li>
+  </ul>
+  <a href="https://wa.me/77772374343" class="nav-wa" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    WhatsApp
+  </a>
+  <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section id="hero" aria-label="Главная">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="scanlines"  aria-hidden="true"></div>
+  <div class="orb orb-a"  aria-hidden="true"></div>
+  <div class="orb orb-b"  aria-hidden="true"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Фотосалон · Костанай · Толстого 62</p>
+    <h1 class="hero-h1">
+      Фотосалон
+      <em>печать, документы и фотоуслуги</em>
+      Юпитер
+    </h1>
+    <p class="hero-sub">Фотопечать любых форматов, фото на документы, ламинирование, сканирование — быстро и аккуратно.</p>
+    <div class="hero-ctas">
+      <a href="#services" class="btn btn-solid">
+        Услуги и цены
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </a>
+      <a href="https://wa.me/77772374343" class="btn btn-ghost" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Написать в WhatsApp
+      </a>
+    </div>
+  </div>
+  <div class="hero-scroll" aria-hidden="true">
+    <div class="scroll-line"></div>
+    <span>Прокрутить</span>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="mq-wrap" aria-hidden="true">
+  <div class="mq-track">
+    <span class="mq-item">Фотопечать <span class="mq-dot"></span></span>
+    <span class="mq-item">Документы <span class="mq-dot"></span></span>
+    <span class="mq-item">Ламинирование <span class="mq-dot"></span></span>
+    <span class="mq-item">Сканирование <span class="mq-dot"></span></span>
+    <span class="mq-item">Ксерокс <span class="mq-dot"></span></span>
+    <span class="mq-item">Обработка фото <span class="mq-dot"></span></span>
+    <span class="mq-item">Визитки <span class="mq-dot"></span></span>
+    <span class="mq-item">Монтаж <span class="mq-dot"></span></span>
+    <span class="mq-item">Фотопечать <span class="mq-dot"></span></span>
+    <span class="mq-item">Документы <span class="mq-dot"></span></span>
+    <span class="mq-item">Ламинирование <span class="mq-dot"></span></span>
+    <span class="mq-item">Сканирование <span class="mq-dot"></span></span>
+    <span class="mq-item">Ксерокс <span class="mq-dot"></span></span>
+    <span class="mq-item">Обработка фото <span class="mq-dot"></span></span>
+    <span class="mq-item">Визитки <span class="mq-dot"></span></span>
+    <span class="mq-item">Монтаж <span class="mq-dot"></span></span>
+  </div>
+</div>
+
+<!-- ══════════ ABOUT ══════════ -->
+<section id="about" class="sec" aria-label="О нас">
+  <div class="sec-in">
+    <div class="about-grid">
+      <div class="about-sticky rv">
+        <p class="sec-lbl">О нас</p>
+        <h2 class="sec-ttl">Работаем<br><em>для вас</em></h2>
+        <div class="about-meta">
+          <div class="about-row"><span class="about-key">Адрес</span><span class="about-val">г. Костанай,<br>ул. Толстого 62</span></div>
+          <div class="about-row"><span class="about-key">WhatsApp</span><span class="about-val"><a href="https://wa.me/77772374343" target="_blank" rel="noopener noreferrer">+7 777 237 43 43</a></span></div>
+          <div class="about-row"><span class="about-key">E-mail</span><span class="about-val"><a href="mailto:sholpan85@bk.ru">sholpan85@bk.ru</a></span></div>
+          <div class="about-row"><span class="about-key">Режим</span><span class="about-val">Пн–Пт 10:00–17:45<br>Сб 10:00–15:45<br>Вс — выходной</span></div>
+          <div class="about-row">
+            <span class="about-key">Соцсети</span>
+            <span class="about-val">
+              <div class="social-row">
+                <a href="https://www.instagram.com/upiter.gsm/" class="soc-btn" target="_blank" rel="noopener noreferrer">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                  @upiter.gsm
+                </a>
+                <a href="https://share.google/OQpIfrKgMoM2TmsVG" class="soc-btn" target="_blank" rel="noopener noreferrer">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+                  На карте
+                </a>
+              </div>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="about-txt">
+        <p class="rv d1"><strong>Фотосалон Юпитер</strong> в Костанае предоставляет полный спектр услуг по фотопечати и смежным направлениям. Принимаем заказы любого объёма, работаем аккуратно и в срок.</p>
+        <blockquote class="rv d2">«Делаем привычные вещи — быстро и аккуратно.»</blockquote>
+        <p class="rv d3">У нас есть <strong>фотолаборатория</strong> и <strong>фотопринтер</strong> — это два способа печати с разными ценами. Для большинства форматов можно выбрать подходящий вариант. Если нужна помощь — просто напишите нам, подскажем.</p>
+        <p class="rv d4">Принимаем фото на флеш-карте, телефоне или по WhatsApp. Работаем без выходных, кроме воскресенья.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ PHOTO PRINT ══════════ -->
+<section id="print" class="sec" aria-label="Фотопечать — цены">
+  <div class="sec-in">
+    <div class="print-head rv">
+      <div>
+        <p class="sec-lbl">Фотопечать</p>
+        <h2 class="sec-ttl">Цены на<br><em>фотопечать</em></h2>
+      </div>
+      <button class="info-btn" onclick="openInfoModal()" aria-label="Чем отличается принтер от лаборатории">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8" stroke-linecap="round" stroke-width="2"/><line x1="12" y1="12" x2="12" y2="16" stroke-linecap="round" stroke-width="1.5"/></svg>
+        Принтер vs Лаборатория — в чём разница?
+      </button>
+    </div>
+    <!-- Desktop table -->
+    <div id="pt-wrap" class="rv d1">
+      <table id="pt" aria-label="Цены на фотопечать">
+        <thead><tr>
+          <th>Формат</th>
+          <th>Оборудование</th>
+          <th style="text-align:right">Цена</th>
+          <th style="text-align:right">Заказать</th>
+        </tr></thead>
+        <tbody id="pt-body"></tbody>
+      </table>
+    </div>
+    <!-- Mobile cards -->
+    <div id="pc" aria-label="Цены на фотопечать"></div>
+  </div>
+</section>
+
+<!-- ══════════ SERVICES ══════════ -->
+<section id="services" class="sec" aria-label="Услуги фотосалона">
+  <div class="sec-in">
+    <div class="srv-head rv">
+      <div>
+        <p class="sec-lbl">Услуги</p>
+        <h2 class="sec-ttl">Что мы<br><em>делаем</em></h2>
+      </div>
+      <p class="srv-sub rv d2">Нажмите на карточку — узнайте подробнее или напишите нам в WhatsApp</p>
+    </div>
+    <div class="srv-grid" id="srv-grid"></div>
+  </div>
+</section>
+
+<!-- ══════════ HOURS ══════════ -->
+<section id="hours" class="sec" aria-label="График работы">
+  <div class="sec-in">
+    <div class="hours-grid">
+      <div class="hours-sticky">
+        <p class="sec-lbl rv">Режим работы</p>
+        <h2 class="sec-ttl rv d1">График<br>работы</h2>
+        <p class="hours-note rv d2">Вопросы можно задать в WhatsApp в любое время.</p>
+      </div>
+      <div class="hour-tbl rv d2">
+        <div class="hour-row" data-day="1"><span class="h-day">Понедельник</span><span class="h-time">10:00 — 17:45 <span class="hdot dot-on" aria-label="Открыто"></span></span></div>
+        <div class="hour-row" data-day="2"><span class="h-day">Вторник</span><span class="h-time">10:00 — 17:45 <span class="hdot dot-on" aria-label="Открыто"></span></span></div>
+        <div class="hour-row" data-day="3"><span class="h-day">Среда</span><span class="h-time">10:00 — 17:45 <span class="hdot dot-on" aria-label="Открыто"></span></span></div>
+        <div class="hour-row" data-day="4"><span class="h-day">Четверг</span><span class="h-time">10:00 — 17:45 <span class="hdot dot-on" aria-label="Открыто"></span></span></div>
+        <div class="hour-row" data-day="5"><span class="h-day">Пятница</span><span class="h-time">10:00 — 17:45 <span class="hdot dot-on" aria-label="Открыто"></span></span></div>
+        <div class="hour-row" data-day="6"><span class="h-day">Суббота</span><span class="h-time">10:00 — 15:45 <span class="hdot dot-on" aria-label="Открыто"></span></span></div>
+        <div class="hour-row day-off" data-day="0"><span class="h-day">Воскресенье</span><span class="h-time">Выходной <span class="hdot dot-off" aria-label="Закрыто"></span></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ CONTACT ══════════ -->
+<section id="contact" class="sec" aria-label="Контакты">
+  <div class="sec-in">
+    <div class="contact-grid">
+      <div class="rv">
+        <p class="sec-lbl">Контакты</p>
+        <h2 class="contact-big">Напишите<br><em>нам</em><br>сегодня</h2>
+      </div>
+      <div class="ci-list">
+        <div class="ci rv d1">
+          <p class="ci-lbl">WhatsApp</p>
+          <p class="ci-val"><a href="https://wa.me/77772374343" target="_blank" rel="noopener noreferrer">+7 777 237 43 43</a></p>
+          <a href="https://wa.me/77772374343" class="wa-big" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Написать в WhatsApp
+          </a>
+        </div>
+        <div class="ci rv d2">
+          <p class="ci-lbl">E-mail</p>
+          <p class="ci-val"><a href="mailto:sholpan85@bk.ru">sholpan85@bk.ru</a></p>
+        </div>
+        <div class="ci rv d3">
+          <p class="ci-lbl">Адрес</p>
+          <p class="ci-val">г. Костанай, ул. Толстого 62</p>
+          <a href="https://share.google/OQpIfrKgMoM2TmsVG" class="map-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            Открыть на Google Maps
+          </a>
+        </div>
+        <div class="ci rv d4">
+          <p class="ci-lbl">Режим работы</p>
+          <p class="ci-val">Пн — Пт: 10:00 — 17:45<br>Суббота: 10:00 — 15:45<br>Воскресенье: выходной</p>
+        </div>
+        <div class="ci rv d5">
+          <p class="ci-lbl">Соцсети</p>
+          <div class="social-row" style="margin-top:8px">
+            <a href="https://www.instagram.com/upiter.gsm/" class="soc-btn" target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              Instagram
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer role="contentinfo">
+  <div class="foot-in">
+    <div class="foot-logo"><img src="image/logo.png" alt="Юпитер" /></div>
+    <p class="foot-copy">© <span id="yr"></span> Фотосалон Юпитер · Костанай</p>
+    <ul class="foot-nav">
+      <li><a href="#about">О нас</a></li>
+      <li><a href="#print">Фотопечать</a></li>
+      <li><a href="#services">Услуги</a></li>
+      <li><a href="#hours">График</a></li>
+      <li><a href="#contact">Контакты</a></li>
+    </ul>
+  </div>
+</footer>
+
+<!-- FLOATING WA -->
+<a href="https://wa.me/77772374343" id="fwa" target="_blank" rel="noopener noreferrer" aria-label="Написать в WhatsApp">
+  <div class="fwa-tip">Написать в WhatsApp</div>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<!-- MODAL -->
+<div id="mo" role="dialog" aria-modal="true" aria-label="Детали" tabindex="-1">
+  <div id="mdl">
+    <div class="mdl-handle" aria-hidden="true"></div>
+    <button class="mdl-close" onclick="closeMdl()" aria-label="Закрыть">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="mdl-in" id="mdl-in"></div>
+  </div>
+</div>
+
+<script>
+/* ── WA SVG ───────────────────────────────────────────── */
+const WA = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`;
+
+/* ── LOADER ───────────────────────────────────────────── */
+const loader = document.getElementById('loader');
+const ldFill = document.getElementById('ld-fill');
+let ldV = 0;
+document.body.style.overflow = 'hidden';
+const ldT = setInterval(() => {
+  ldV += Math.random() * 10 + 4;
+  if (ldV >= 100) { ldV = 100; clearInterval(ldT); }
+  ldFill.style.width = ldV + '%';
+}, 60);
+
+function hideLoader() {
+  setTimeout(() => { loader.classList.add('out'); document.body.style.overflow = ''; }, 200);
+}
+
+/* ── PARSERS ─────────────────────────────────────────── */
+function parsePrint(txt) {
+  return txt.split(/={3,}/).map(b=>b.trim()).filter(Boolean).map(b=>{
+    const lines = b.split('\n').map(l=>l.trim()).filter(Boolean);
+    return {
+      size: lines[0],
+      prices: lines.slice(1).map(l=>{
+        const m = l.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+        return m ? {price:m[1].trim(), type:m[2].trim()} : {price:l, type:''};
+      })
+    };
+  });
+}
+
+function parseSrv(txt) {
+  const blks = txt.split(/={3,}/).map(b=>b.trim()).filter(Boolean);
+  const names  = (blks[0]||'').split('\n').map(l=>l.trim()).filter(Boolean);
+  const prices = (blks[1]||'').split('\n').map(l=>l.trim()).filter(Boolean);
+  const units  = (blks[2]||'').split('\n').map(l=>l.trim()).filter(Boolean);
+  return names.map((n,i)=>({name:n, price:prices[i]||'', unit:units[i]||''}));
+}
+
+function parseInfo(txt) {
+  return txt.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
+}
+
+/* ── ICONS ───────────────────────────────────────────── */
+const ICONS = [['3x4','🪪'],['9х12','📋'],['монтаж','👔'],['визу','✈️'],['разработка','🎨'],['ламин','📂'],['сканир','🗂️'],['черно-бел','🖨️'],['цветная','🖍️'],['ксерокс','📄'],['обработка','✨']];
+function icon(name) {
+  const k = name.toLowerCase();
+  for (const [kw,ic] of ICONS) if (k.includes(kw)) return ic;
+  return '📸';
+}
+
+/* ── RENDER PRINT ────────────────────────────────────── */
+function renderPrint(items) {
+  const tb = document.getElementById('pt-body');
+  const pc = document.getElementById('pc');
+  tb.innerHTML = pc.innerHTML = '';
+  items.forEach(item => {
+    const msg = encodeURIComponent(`Здравствуйте! Интересует фотопечать ${item.size}`);
+    const rs = item.prices.length;
+    let html = '';
+    item.prices.forEach((p, i) => {
+      html += `<tr>
+        ${i===0?`<td rowspan="${rs}"><span class="pt-size">${item.size}</span></td>`:''}
+        <td>${p.type?`<span class="pt-badge">${p.type}</span>`:''}</td>
+        <td style="text-align:right"><span class="pt-price">${p.price}</span></td>
+        ${i===0?`<td rowspan="${rs}" style="text-align:right">
+          <a href="https://wa.me/77772374343?text=${msg}" class="pt-wa" target="_blank" rel="noopener noreferrer">${WA} Написать</a>
+        </td>`:''}
+      </tr>`;
+    });
+    tb.insertAdjacentHTML('beforeend', html);
+
+    const pRows = item.prices.map(p=>`<div class="pc-row">${p.type?`<span class="pc-badge">${p.type}</span>`:''}<span class="pc-price">${p.price}</span></div>`).join('');
+    pc.insertAdjacentHTML('beforeend',`<div class="pc-card">
+      <div class="pc-size">${item.size}</div>
+      <div class="pc-right">${pRows}
+        <a href="https://wa.me/77772374343?text=${msg}" class="pc-wa" target="_blank" rel="noopener noreferrer">${WA} Написать</a>
+      </div>
+    </div>`);
+  });
+}
+
+/* ── RENDER SERVICES ─────────────────────────────────── */
+let srvData = [];
+function renderSrv(items) {
+  srvData = items;
+  const g = document.getElementById('srv-grid');
+  g.innerHTML = '';
+  items.forEach((item, i) => {
+    const ic  = icon(item.name);
+    const num = String(i+1).padStart(2,'0');
+    const msg = encodeURIComponent(`Здравствуйте! Интересует услуга: ${item.name}`);
+    const u   = item.unit && item.unit!=='-' ? `<span class="srv-unit">/ ${item.unit}</span>` : '';
+    g.insertAdjacentHTML('beforeend',`
+      <div class="srv-card rv d${(i%4)+1}"
+           onclick="openSrvMdl(${i})"
+           tabindex="0" role="button"
+           aria-label="Подробнее: ${item.name}"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openSrvMdl(${i})}">
+        <div class="srv-top">
+          <span class="srv-icon" aria-hidden="true">${ic}</span>
+          <span class="srv-num">${num} —</span>
+        </div>
+        <div>
+          <div class="srv-name">${item.name}</div>
+          <div class="srv-bot">
+            <div class="srv-price-row">
+              <span class="srv-price">${item.price}</span>${u}
+            </div>
+            <a href="https://wa.me/77772374343?text=${msg}" class="srv-wa"
+               target="_blank" rel="noopener noreferrer"
+               onclick="event.stopPropagation()"
+               aria-label="Написать о ${item.name}">${WA} Написать</a>
+          </div>
+        </div>
+      </div>`);
+  });
+  document.querySelectorAll('.rv:not(.in)').forEach(el => obs.observe(el));
+}
+
+/* ── MODAL ───────────────────────────────────────────── */
+let infoParas = [];
+
+function openMdl(html) {
+  document.getElementById('mdl-in').innerHTML = html;
+  document.getElementById('mo').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeMdl() {
+  document.getElementById('mo').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function openInfoModal() {
+  if (!infoParas.length) { openMdl('<p class="mdl-tag">Информация</p><p style="color:var(--g5);font-family:var(--fm);font-size:.75rem">Загружается...</p>'); return; }
+  const [title, ...rest] = infoParas;
+  const body = rest.slice(0,-1).map(p=>`<p>${p.replace(/^([^—]+—)/,'<strong>$1</strong>')}</p>`).join('');
+  const tipLines = rest[rest.length-1].split('\n').filter(Boolean).map(l=>`<div class="mdl-tip">${l}</div>`).join('');
+  openMdl(`
+    <p class="mdl-tag">Справочная информация</p>
+    <h2 class="mdl-ttl">Принтер<br>vs Лаборатория</h2>
+    <div class="mdl-body">${body}</div>
+    <div class="mdl-div"></div>
+    <div class="mdl-tips">${tipLines}</div>
+    <a href="https://wa.me/77772374343?text=${encodeURIComponent('Здравствуйте! Помогите выбрать способ печати')}"
+       class="mdl-wa" target="_blank" rel="noopener noreferrer">${WA} Спросить в WhatsApp</a>`);
+}
+
+function openSrvMdl(i) {
+  const item = srvData[i]; if (!item) return;
+  const msg  = encodeURIComponent(`Здравствуйте! Интересует услуга: ${item.name}`);
+  const u    = item.unit && item.unit!=='-' ? item.unit : '';
+  openMdl(`
+    <p class="mdl-tag">Услуга</p>
+    <h2 class="mdl-ttl">${item.name}</h2>
+    <div class="mdl-price-blk">
+      <span class="mdl-price-name">Стоимость</span>
+      <span class="mdl-price-val">${item.price}<span class="mdl-price-unit">${u}</span></span>
+    </div>
+    <p class="mdl-body" style="margin-top:10px;color:var(--g5);font-size:.9rem;">Для уточнения деталей или оформления заказа напишите нам в WhatsApp — ответим быстро.</p>
+    <a href="https://wa.me/77772374343?text=${msg}" class="mdl-wa" target="_blank" rel="noopener noreferrer">${WA} Написать в WhatsApp</a>`);
+}
+
+document.getElementById('mo').addEventListener('click', e => { if (e.target===e.currentTarget) closeMdl(); });
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeMdl(); });
+
+/* swipe down to close */
+let ty0 = 0;
+document.getElementById('mdl').addEventListener('touchstart', e=>{ ty0=e.touches[0].clientY; }, {passive:true});
+document.getElementById('mdl').addEventListener('touchmove',  e=>{ if(e.touches[0].clientY-ty0>80) closeMdl(); }, {passive:true});
+
+/* ── FETCH DATA ──────────────────────────────────────── */
+async function loadData() {
+  try {
+    const [r1,r2,r3] = await Promise.allSettled([
+      fetch('./text/price.txt'),
+      fetch('./text/price2.txt'),
+      fetch('./text/info.txt'),
+    ]);
+    if (r1.status==='fulfilled' && r1.value.ok) renderPrint(parsePrint(await r1.value.text()));
+    if (r2.status==='fulfilled' && r2.value.ok) renderSrv(parseSrv(await r2.value.text()));
+    if (r3.status==='fulfilled' && r3.value.ok) infoParas = parseInfo(await r3.value.text());
+  } catch(e) { console.warn(e); }
+  finally { hideLoader(); }
+}
+
+/* ── CURSOR ──────────────────────────────────────────── */
+if (window.matchMedia('(pointer:fine)').matches) {
+  const cdw = document.getElementById('cdot-wrap');
+  const crw = document.getElementById('cring-wrap');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove', e=>{ mx=e.clientX; my=e.clientY; cdw.style.transform=`translate(${mx}px,${my}px)`; });
+  (function raf(){ rx+=(mx-rx)*.1; ry+=(my-ry)*.1; crw.style.transform=`translate(${rx}px,${ry}px)`; requestAnimationFrame(raf); })();
+  document.addEventListener('mouseover', e=>{ if(e.target.closest('a,button,.srv-card,.hour-row')) document.body.classList.add('hov'); });
+  document.addEventListener('mouseout',  e=>{ if(e.target.closest('a,button,.srv-card,.hour-row')) document.body.classList.remove('hov'); });
+}
+
+/* ── NAV ─────────────────────────────────────────────── */
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('stuck', scrollY > 50);
+  document.getElementById('pbar').style.width = (scrollY/(document.body.scrollHeight-innerHeight)*100)+'%';
+}, {passive:true});
+
+/* ── BURGER ──────────────────────────────────────────── */
+const burger = document.getElementById('burger');
+const mmenu  = document.getElementById('mmenu');
+burger.addEventListener('click', () => {
+  const o = mmenu.classList.toggle('open');
+  burger.classList.toggle('open'); burger.setAttribute('aria-expanded',o);
+  document.body.style.overflow = o ? 'hidden' : '';
+});
+function closeMM() {
+  mmenu.classList.remove('open'); burger.classList.remove('open');
+  burger.setAttribute('aria-expanded','false'); document.body.style.overflow='';
+}
+mmenu.addEventListener('click', e=>{ if(e.target===mmenu) closeMM(); });
+
+/* ── HOURS: today ────────────────────────────────────── */
+const todayRow = document.querySelector(`.hour-row[data-day="${new Date().getDay()}"]`);
+if (todayRow) todayRow.classList.add('hour-today');
+
+/* ── REVEAL ──────────────────────────────────────────── */
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
+}, { threshold:.1, rootMargin:'0px 0px -50px 0px' });
+document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+
+/* ── SMOOTH ANCHOR ───────────────────────────────────── */
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click', e=>{
+    const t = document.querySelector(a.getAttribute('href'));
+    if(t){ e.preventDefault(); window.scrollTo({top:t.getBoundingClientRect().top+scrollY-68,behavior:'smooth'}); }
+  });
+});
+
+/* ── PARALLAX ────────────────────────────────────────── */
+window.addEventListener('mousemove', e=>{
+  const x=(e.clientX/innerWidth-.5)*22, y=(e.clientY/innerHeight-.5)*22;
+  document.querySelector('.orb-a').style.transform=`translate(${x}px,${y}px)`;
+  document.querySelector('.orb-b').style.transform=`translate(${-x}px,${-y}px)`;
+}, {passive:true});
+
+/* ── YEAR + BOOT ─────────────────────────────────────── */
+document.getElementById('yr').textContent = new Date().getFullYear();
+loadData();
+</script>
+</body>
+</html>
