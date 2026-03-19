@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Конструктор резюме — Фотосалон Юпитер</title>
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Space+Mono:wght@0,400;0,700&family=Raleway:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+  <style>
+  /* ═══════════════════════════ PAGE TOKENS ════════════════════════ */
+  :root{
+    --black:#060606;--white:#f4f4ef;
+    --g0:#0d0d0d;--g1:#161616;--g2:#1f1f1f;--g3:#2b2b2b;--g4:#444;--g5:#666;--g6:#999;
+    --accent:#c9ba9b;
+    --fd:'Bebas Neue',sans-serif;
+    --fs:'Cormorant Garamond',serif;
+    --fm:'Space Mono',monospace;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--black);color:var(--white);font-family:var(--fs);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  img{display:block;max-width:100%}
+  a{color:inherit;text-decoration:none}
+  button,input,textarea,select{font-family:inherit}
+  input:focus,textarea:focus{outline:none}
+
+  /* ═══════════════════════════ TOP NAV ════════════════════════════ */
+  .top-bar{
+    position:fixed;top:0;left:0;right:0;z-index:200;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:13px 32px;
+    background:rgba(6,6,6,.96);backdrop-filter:blur(24px);
+    border-bottom:1px solid var(--g3);
+  }
+  .tbl{display:flex;align-items:center;gap:10px}
+  .tbl img{height:26px;filter:invert(1);opacity:.8}
+  .tbl span{font-family:var(--fd);font-size:1.2rem;letter-spacing:.1em}
+  .tb-back{
+    display:inline-flex;align-items:center;gap:7px;
+    font-family:var(--fm);font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--g5);border:1px solid var(--g3);padding:8px 14px;
+    transition:color .3s,border-color .3s;
+  }
+  .tb-back:hover{color:var(--white);border-color:var(--g5)}
+  .tb-back svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+  /* ═══════════════════════════ PAGE HEADER ════════════════════════ */
+  .pg-header{
+    padding:90px 32px 32px;
+    border-bottom:1px solid var(--g3);
+    background:var(--g0);
+  }
+  .pg-eyebrow{
+    font-family:var(--fm);font-size:.56rem;letter-spacing:.35em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:12px;
+  }
+  .pg-eyebrow::before{content:'';width:26px;height:1px;background:var(--accent)}
+  .pg-h1{
+    font-family:var(--fd);font-size:clamp(2.4rem,5.5vw,5rem);
+    text-transform:uppercase;line-height:.88;letter-spacing:-.01em;
+  }
+  .pg-h1 em{
+    font-family:var(--fs);font-style:italic;font-weight:300;font-size:.44em;
+    display:block;color:var(--g5);text-transform:none;letter-spacing:.02em;margin-top:8px;
+  }
+  .pg-hint{font-family:var(--fs);font-size:.92rem;color:var(--g5);font-weight:300;margin-top:14px;max-width:520px;line-height:1.75}
+
+  /* ═══════════════════════════ MOBILE TABS ════════════════════════ */
+  .mob-tabs{display:none}
+  @media(max-width:900px){
+    .mob-tabs{
+      display:flex;position:sticky;top:52px;z-index:100;
+      background:var(--g0);border-bottom:1px solid var(--g3);
+    }
+    .mtab{
+      flex:1;padding:13px;font-family:var(--fm);font-size:.58rem;
+      letter-spacing:.2em;text-transform:uppercase;color:var(--g5);
+      background:none;border:none;cursor:pointer;
+      border-bottom:2px solid transparent;transition:color .3s,border-color .3s;
+    }
+    .mtab.on{color:var(--white);border-bottom-color:var(--accent)}
+    .form-panel.mhide,.preview-panel.mhide{display:none!important}
+  }
+
+  /* ═══════════════════════════ EDITOR GRID ════════════════════════ */
+  .editor-wrap{display:grid;grid-template-columns:370px 1fr;min-height:calc(100vh - 52px)}
+  @media(max-width:1200px){.editor-wrap{grid-template-columns:320px 1fr}}
+  @media(max-width:900px){.editor-wrap{display:block}}
+
+  /* ═══════════════════════════ FORM PANEL ════════════════════════ */
+  .form-panel{
+    background:var(--g0);border-right:1px solid var(--g3);
+    padding:24px 20px;
+    position:sticky;top:52px;
+    height:calc(100vh - 52px);overflow-y:auto;
+    scrollbar-width:thin;scrollbar-color:var(--g3) transparent;
+  }
+  .form-panel::-webkit-scrollbar{width:3px}
+  .form-panel::-webkit-scrollbar-thumb{background:var(--g3)}
+  @media(max-width:900px){.form-panel{position:static;height:auto}}
+
+  /* Color picker */
+  .cprow{
+    display:flex;align-items:center;gap:10px;
+    margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--g3);
+  }
+  .cplabel{font-family:var(--fm);font-size:.54rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g5);flex-shrink:0}
+  .swatches{display:flex;gap:7px;flex-wrap:wrap}
+  .swatch{
+    width:22px;height:22px;border-radius:50%;cursor:pointer;
+    border:2px solid transparent;transition:transform .2s,border-color .2s;
+  }
+  .swatch:hover{transform:scale(1.25)}
+  .swatch.on{border-color:var(--white)}
+
+  /* Form sections (accordion) */
+  .fsec{margin-bottom:4px}
+  .fsec-head{
+    display:flex;align-items:center;justify-content:space-between;
+    font-family:var(--fm);font-size:.57rem;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--g4);padding:11px 0;border-top:1px solid var(--g2);
+    cursor:pointer;user-select:none;
+  }
+  .fsec-head span{display:flex;align-items:center;gap:7px}
+  .fsec-ico{font-size:.8rem}
+  .fsec-arr{font-size:.55rem;color:var(--g4);transition:transform .3s;display:inline-block}
+  .fsec-head.on .fsec-arr{transform:rotate(180deg)}
+  .fsec-body{display:none;padding-top:10px}
+  .fsec-body.on{display:block}
+
+  /* Fields */
+  .f{margin-bottom:10px}
+  .f label{display:block;font-family:var(--fm);font-size:.52rem;letter-spacing:.17em;text-transform:uppercase;color:var(--g5);margin-bottom:4px}
+  .f input,.f textarea,.f select{
+    width:100%;background:var(--g1);border:1px solid var(--g3);
+    color:var(--white);padding:8px 10px;font-size:.86rem;font-family:var(--fs);
+    transition:border-color .2s;
+  }
+  .f input:focus,.f textarea:focus,.f select:focus{border-color:var(--g5)}
+  .f input::placeholder,.f textarea::placeholder{color:var(--g4);font-style:italic}
+  .f textarea{min-height:60px;line-height:1.5;resize:vertical}
+  .f select{appearance:none;cursor:pointer}
+  .f2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+  /* Photo upload */
+  .photo-area{
+    border:1px dashed var(--g3);background:var(--g1);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:8px;padding:18px;cursor:pointer;transition:border-color .3s;
+    position:relative;overflow:hidden;min-height:100px;
+  }
+  .photo-area:hover{border-color:var(--g5)}
+  .photo-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .photo-ico{font-size:1.8rem;opacity:.5}
+  .photo-txt{font-family:var(--fm);font-size:.54rem;letter-spacing:.15em;text-transform:uppercase;color:var(--g5);text-align:center}
+  .photo-thumb{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--g3);display:none;margin-top:4px}
+
+  /* Lang level dots */
+  .lang-row{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;margin-bottom:6px}
+  .ldots{display:flex;gap:4px}
+  .ldot{
+    width:13px;height:13px;border-radius:50%;background:var(--g3);
+    border:1px solid var(--g4);cursor:pointer;padding:0;
+    transition:background .2s,border-color .2s;
+  }
+  .ldot.on{background:var(--accent);border-color:var(--accent)}
+
+  /* Exp blocks */
+  .eblk{background:var(--g1);border:1px solid var(--g2);padding:12px;margin-bottom:8px}
+  .eblk-ttl{font-family:var(--fm);font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g4);margin-bottom:10px}
+
+  /* Action buttons */
+  .actrow{display:flex;gap:9px;margin-top:22px;padding-top:18px;border-top:1px solid var(--g3)}
+  .btn-pdf{
+    flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--white);color:var(--black);
+    padding:12px 18px;font-family:var(--fm);font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;
+    border:1px solid transparent;cursor:pointer;
+    transition:background .3s,color .3s,border-color .3s,transform .3s var(--ease);
+  }
+  .btn-pdf:hover{background:transparent;color:var(--white);border-color:var(--white);transform:translateY(-2px)}
+  .btn-pdf svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5}
+  .btn-pdf.busy{opacity:.5;pointer-events:none}
+  .btn-prt{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    padding:12px 15px;font-family:var(--fm);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--g5);border:1px solid var(--g3);cursor:pointer;background:none;
+    transition:color .3s,border-color .3s;
+  }
+  .btn-prt:hover{color:var(--white);border-color:var(--g5)}
+  .btn-prt svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+  /* ═══════════════════════════ PREVIEW PANEL ══════════════════════ */
+  .preview-panel{
+    padding:28px 24px;
+    display:flex;flex-direction:column;align-items:center;
+    background:var(--g1);min-height:calc(100vh - 52px);
+  }
+  .prev-lbl{
+    font-family:var(--fm);font-size:.54rem;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--g5);margin-bottom:18px;display:flex;align-items:center;gap:10px;width:100%;max-width:800px;
+  }
+  .prev-lbl::before,.prev-lbl::after{content:'';flex:1;height:1px;background:var(--g3)}
+  .rv-scale-wrap{
+    display:flex;justify-content:center;width:100%;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     THE RESUME (794 × 1123 — A4 at 96 dpi)
+  ════════════════════════════════════════════════════════════════ */
+  #rvEl{
+    width:794px;min-height:1123px;
+    display:flex;flex-direction:row;
+    background:#fff;
+    box-shadow:0 24px 80px rgba(0,0,0,.7);
+    transform-origin:top center;
+    font-family:'Raleway',sans-serif;
+    position:relative;overflow:hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .rv-sb{width:278px;flex-shrink:0;background:#1A2744;display:flex;flex-direction:column;position:relative}
+  .rv-sb-top{height:10px;background:var(--ra,#C8A96E)}
+  .rv-photo-wrap{display:flex;flex-direction:column;align-items:center;padding:20px 16px 12px}
+  .rv-ring{
+    width:108px;height:108px;border-radius:50%;
+    border:3px solid var(--ra,#C8A96E);
+    overflow:hidden;background:#253460;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .rv-ring img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+  .rv-ph-placeholder{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .rv-ph-placeholder svg{width:34px;height:34px;opacity:.35}
+  .rv-ph-placeholder span{font-size:7.5px;letter-spacing:2px;text-transform:uppercase;color:#7A8EAE;font-family:'Raleway',sans-serif}
+
+  .rv-nameblk{text-align:center;padding:0 14px 14px}
+  .rv-fn{font-family:'Raleway',sans-serif;font-size:8.5px;font-weight:400;letter-spacing:3px;text-transform:uppercase;color:#A8B8D0}
+  .rv-ln{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#fff;line-height:1.1;margin-top:2px}
+  .rv-ndiv{width:44px;height:2px;background:var(--ra,#C8A96E);margin:8px auto}
+  .rv-pos{font-size:7.5px;letter-spacing:2px;text-transform:uppercase;color:#A8B8D0;font-family:'Raleway',sans-serif;font-weight:400}
+
+  .rv-sbs{padding:0 14px 10px}
+  .rv-sbt{
+    font-family:'Raleway',sans-serif;font-weight:700;font-size:6.5px;letter-spacing:2.5px;
+    text-transform:uppercase;color:var(--ra,#C8A96E);
+    padding-bottom:3px;margin-bottom:7px;
+    border-bottom:1px solid var(--ra,#C8A96E);
+  }
+
+  .rv-ci{display:flex;align-items:flex-start;gap:5px;margin-bottom:5px}
+  .rv-cl{font-family:'Raleway',sans-serif;font-size:6.5px;font-weight:700;color:var(--ra,#C8A96E);min-width:38px;flex-shrink:0}
+  .rv-cv{font-family:'Raleway',sans-serif;font-size:7.5px;color:#A8B8D0;line-height:1.4;word-break:break-all}
+
+  .rv-skill{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+  .rv-sdot{width:5px;height:5px;border-radius:50%;background:var(--ra,#C8A96E);flex-shrink:0}
+  .rv-stxt{font-family:'Raleway',sans-serif;font-size:7.5px;color:#A8B8D0;line-height:1.3}
+  .rv-sempty{height:1px;background:#2A3B5E;margin-bottom:4px}
+
+  .rv-lang{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+  .rv-lname{font-family:'Raleway',sans-serif;font-size:7.5px;color:#A8B8D0}
+  .rv-ldots{display:flex;gap:3px}
+  .rv-ld{width:9px;height:9px;border-radius:50%}
+  .rv-ld.f{background:var(--ra,#C8A96E)}
+  .rv-ld.e{background:#2A3B5E;border:1px solid #3B5080}
+
+  .rv-edu{display:flex;gap:7px;margin-bottom:9px}
+  .rv-ebar{width:3px;background:var(--ra,#C8A96E);border-radius:2px;flex-shrink:0;min-height:28px}
+  .rv-edeg{font-family:'Raleway',sans-serif;font-size:7.5px;font-weight:700;color:#fff;line-height:1.3}
+  .rv-esch{font-family:'Raleway',sans-serif;font-size:7px;color:#A8B8D0;margin-top:2px}
+  .rv-eyr{font-family:'Raleway',sans-serif;font-size:6.5px;color:#5A6E99;margin-top:2px}
+
+  .rv-sb-spacer{flex:1}
+  .rv-sb-bot{height:6px;background:var(--ra,#C8A96E)}
+
+  /* ── MAIN AREA ── */
+  .rv-main{flex:1;background:#F4F6FA;display:flex;flex-direction:column;position:relative;overflow:hidden}
+  .rv-main-top{height:10px;background:var(--ra,#C8A96E)}
+
+  /* corner decoration */
+  .rv-corner::before{
+    content:'';position:absolute;right:-22px;top:-22px;
+    width:80px;height:80px;border-radius:50%;
+    background:rgba(26,39,68,.06);pointer-events:none;
+  }
+  .rv-corner::after{
+    content:'';position:absolute;right:-6px;top:-6px;
+    width:52px;height:52px;border-radius:50%;
+    background:rgba(26,39,68,.04);pointer-events:none;
+  }
+  .rv-wm{
+    position:absolute;top:36%;left:50%;transform:translate(-50%,-50%) rotate(35deg);
+    font-family:'Playfair Display',serif;font-size:50px;font-weight:700;
+    color:rgba(26,39,68,.04);pointer-events:none;white-space:nowrap;z-index:0;
+  }
+
+  .rv-mc{position:relative;z-index:1;padding:12px 18px 14px;flex:1;display:flex;flex-direction:column;gap:10px}
+
+  .rv-ms{}
+  .rv-msh{
+    display:flex;align-items:center;
+    background:#1A2744;border-radius:2px;
+    padding:4px 9px;margin-bottom:7px;
+    position:relative;overflow:hidden;
+  }
+  .rv-msh::before{
+    content:'';position:absolute;left:0;top:0;bottom:0;
+    width:4px;background:var(--ra,#C8A96E);border-radius:1px 0 0 1px;
+  }
+  .rv-msttl{
+    font-family:'Raleway',sans-serif;font-weight:700;font-size:7.5px;
+    letter-spacing:1.8px;text-transform:uppercase;color:#fff;padding-left:8px;
+  }
+
+  .rv-abox{
+    background:#fff;border:1px solid #D8DEE9;border-radius:2px;
+    min-height:48px;padding:7px 9px;
+    font-family:'Raleway',sans-serif;font-size:8px;color:#3A4A6B;line-height:1.6;
+  }
+  .rv-abox.emp{color:#B8C4D8;font-style:italic}
+
+  /* Experience */
+  .rv-exp{display:flex;gap:9px;margin-bottom:7px}
+  .rv-etl{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+  .rv-edot{width:9px;height:9px;border-radius:50%;background:var(--ra,#C8A96E);flex-shrink:0;margin-top:3px}
+  .rv-eline{width:1px;flex:1;background:#D8DEE9;margin-top:3px;min-height:20px}
+  .rv-econt{flex:1;background:#fff;border:1px solid #D8DEE9;border-radius:2px;padding:7px 9px}
+  .rv-ehdr{display:flex;justify-content:space-between;align-items:flex-start;gap:7px;margin-bottom:4px}
+  .rv-ettl{font-family:'Playfair Display',serif;font-size:9.5px;font-weight:700;color:#1A2744;line-height:1.2}
+  .rv-eperiod{
+    background:#1A2744;color:var(--ra,#C8A96E);
+    font-family:'Raleway',sans-serif;font-size:6.5px;font-weight:600;letter-spacing:.5px;
+    padding:2px 6px;border-radius:1px;white-space:nowrap;flex-shrink:0;
+  }
+  .rv-eco{font-family:'Raleway',sans-serif;font-size:7.5px;font-weight:600;color:#2E4A8B;margin-bottom:2px}
+  .rv-ecity{font-family:'Raleway',sans-serif;font-size:7px;color:#6B7A99;margin-bottom:4px}
+  .rv-edesc{font-family:'Raleway',sans-serif;font-size:7.5px;color:#4A5A7A;line-height:1.55}
+  .rv-edesc.emp{color:#B8C4D8;font-style:italic}
+
+  /* Additional */
+  .rv-addg{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .rv-adl{font-family:'Raleway',sans-serif;font-size:6.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#6B7A99;margin-bottom:2px}
+  .rv-adv{font-family:'Raleway',sans-serif;font-size:7.5px;color:#3A4A6B;line-height:1.4;border-bottom:1px solid #D8DEE9;padding-bottom:2px;min-height:13px}
+  .rv-adv.emp{color:#B8C4D8;font-style:italic}
+
+  /* Footer */
+  .rv-foot{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    padding:5px 0 0;border-top:2px solid #1A2744;margin-top:auto;
+  }
+  .rv-ftxt{font-family:'Raleway',sans-serif;font-size:6.5px;color:#6B7A99}
+  .rv-mbot{height:6px;background:#1A2744;margin-top:4px}
+
+  /* ═══════════════════════════ TOAST ══════════════════════════════ */
+  #toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(12px);
+    background:var(--g1);border:1px solid var(--g3);color:var(--white);
+    padding:11px 22px;font-family:var(--fm);font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;
+    z-index:9999;opacity:0;transition:opacity .3s,transform .3s var(--ease);white-space:nowrap;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ═══════════════════════════ PRINT ══════════════════════════════ */
+  @media print{
+    body{background:#fff!important;color:#000!important}
+    .top-bar,.pg-header,.form-panel,.mob-tabs,.prev-lbl,#toast{display:none!important}
+    .editor-wrap{display:block!important}
+    .preview-panel{padding:0!important;background:#fff!important;min-height:unset!important}
+    .rv-scale-wrap{justify-content:flex-start!important}
+    #rvEl{transform:none!important;box-shadow:none!important;width:210mm!important;min-height:297mm!important}
+  }
+  </style>
+</head>
+<body>
+
+<!-- ── TOP NAV ── -->
+<nav class="top-bar">
+  <a href="index.html" class="tbl">
+    <img src="image/logo.png" alt="Юпитер">
+    <span>Юпитер</span>
+  </a>
+  <a href="index.html" class="tb-back">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    На сайт
+  </a>
+</nav>
+
+<!-- ── PAGE HEADER ── -->
+<div class="pg-header">
+  <p class="pg-eyebrow">Фотосалон Юпитер · Костанай · Бесплатно</p>
+  <h1 class="pg-h1">Конструктор<br><em>резюме онлайн</em></h1>
+  <p class="pg-hint">Заполните поля, загрузите фото, выберите цвет — и скачайте готовое резюме в PDF. Всё бесплатно, прямо в браузере.</p>
+</div>
+
+<!-- ── MOBILE TABS ── -->
+<div class="mob-tabs">
+  <button class="mtab on" onclick="switchTab('form',this)">📝 Форма</button>
+  <button class="mtab" onclick="switchTab('prev',this)">👁 Просмотр</button>
+</div>
+
+<!-- ── EDITOR ── -->
+<div class="editor-wrap">
+
+  <!-- ══════════════════════ FORM PANEL ══════════════════════ -->
+  <aside class="form-panel" id="fp">
+
+    <!-- Color swatches -->
+    <div class="cprow">
+      <span class="cplabel">Цвет акцента:</span>
+      <div class="swatches">
+        <div class="swatch on" style="background:#C8A96E" data-c="#C8A96E" title="Золото" onclick="setAcc(this)"></div>
+        <div class="swatch" style="background:#4A90E2" data-c="#4A90E2" title="Синий" onclick="setAcc(this)"></div>
+        <div class="swatch" style="background:#E07A5F" data-c="#E07A5F" title="Коралл" onclick="setAcc(this)"></div>
+        <div class="swatch" style="background:#81B29A" data-c="#81B29A" title="Зелёный" onclick="setAcc(this)"></div>
+        <div class="swatch" style="background:#C0C0CC" data-c="#C0C0CC" title="Серебро" onclick="setAcc(this)"></div>
+        <div class="swatch" style="background:#9B72CF" data-c="#9B72CF" title="Фиолетовый" onclick="setAcc(this)"></div>
+      </div>
+    </div>
+
+    <!-- Photo -->
+    <div class="fsec">
+      <div class="fsec-head on" onclick="tog(this)">
+        <span><span class="fsec-ico">📸</span>Фото</span>
+        <span class="fsec-arr">▾</span>
+      </div>
+      <div class="fsec-body on">
+        <label class="photo-area">
+          <input type="file" accept="image/*" onchange="loadPhoto(event)">
+          <span class="photo-ico" id="pIco">🖼️</span>
+          <span class="photo-txt" id="pTxt">Нажмите для загрузки фото</span>
+          <img id="pThumb" class="photo-thumb">
+        </label>
+      </div>
+    </div>
+
+    <!-- Personal -->
+    <div class="fsec">
+      <div class="fsec-head on" onclick="tog(this)">
+        <span><span class="fsec-ico">👤</span>Личные данные</span>
+        <span class="fsec-arr">▾</span>
+      </div>
+      <div class="fsec-body on">
+        <div class="f2">
+          <div class="f"><label>Имя</label><input type="text" id="fFn" placeholder="Иван" oninput="upd()"></div>
+          <div class="f"><label>Фамилия</label><input type="text" id="fLn" placeholder="Иванов" oninput="upd()"></div>
+        </div>
+        <div class="f"><label>Желаемая должность</label><input type="text" id="fPos" placeholder="Менеджер по продажам" oninput="upd()"></div>
+      </div>
+    </div>
+
+    <!-- Contacts -->
+    <div class="fsec">
+      <div class="fsec-head on" onclick="tog(this)">
+        <span><span class="fsec-ico">📞</span>Контакты</span>
+        <span class="fsec-arr">▾</span>
+      </div>
+      <div class="fsec-body on">
+        <div class="f"><label>Телефон</label><input type="text" id="fPh" placeholder="+7 777 000 00 00" oninput="upd()"></div>
+        <div class="f"><label>E-mail</label><input type="email" id="fEm" placeholder="email@example.com" oninput="upd()"></div>
+        <div class="f"><label>Город</label><input type="text" id="fCt" placeholder="Костанай" oninput="upd()"></div>
+        <div class="f"><label>LinkedIn / Сайт</label><input type="text" id="fLi" placeholder="linkedin.com/in/ivan" oninput="upd()"></div>
+      </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="fsec">
+      <div class="fsec-head" onclick="tog(this)">
+        <span><span class="fsec-ico">⭐</span>Ключевые навыки</span>
+        <span class="fsec-arr">▾</span>
+      </div>
+      <div class="fsec-body">
+        <div id="skillsWrap">
+          <div class="f"><input type="text" placeholder="Навык 1" oninput="upd()"></div>
+          <div class="f"><input type="text" placeholder="Навык 2" oninput="upd()"></div>
+          <div class="f"><input type="text" placeholder="Навык 3" oninput="upd()"></div>
+          <div class="f"><input type="text" placeholder="Навык 4" oninput="upd()"></div>
+          <div class="f"><input type="text" placeholder="Навык 5" oninput="upd()"></div>
+          <div class="f"><input type="text" placeholder="Навык 6" oninput="upd()"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Languages -->
+    <div class="fsec">
+      <div class="fsec-head" onclick="tog(this)">
+        <span><span class="fsec-ico">🌍</span>Языки</span>
+        <span class="fsec-arr">▾</span>
+      </div>
+      <div class="fsec-body">
+        <div id="langsWrap">
+          <div class="lang-row">
+            <input type="text" placeholder="Русский" data-li="0" oninput="upd()" style="background:var(--g1);border:1px solid var(--g3);color:var(--white);padding:7px 9px;font-size:.84rem;font-family:var(--fs);width:100%;transition:border-color .2s">
+            <div class="ldots" data-ll="0">
+              <button class="ldot on" onclick="setLL(0,1)"></button>
+              <button class="ldot on" onclick="setLL(0,2)"></button>
+              <button class="ldot on" onclick="setLL(0,3)"></button>
+              <button class="ldot on" onclick="setLL(0,4)"></button>
+              <button class="ldot on" onclick="setLL(0,5)"></button>
+            </div>
+          </div>
+          <div class="lang-row">
+            <input type="text" placeholder="Английский" data-li="1" oninput="upd()" style="background:var(--g1);border:1px solid var(--g3);color:var(--white);padding:7px 9px;font-size:.84rem;font-family:var(--fs);width:100%;transition:border-color .2s">
+            <div class="ldots" data-ll="1">
+              <button class="ldot on" onclick="setLL(1,1)"></button>
+              <button class="ldot on" onclick="setLL(1,2)"></button>
+              <button class="ldot on" onclick="setLL(1,3)"></button>
+              <button class="ldot" onclick="setLL(1,4)"></button>
+              <button class="ldot" onclick="setLL(1,5)"></button>
+            </div>
+          </div>
+          <div class="lang-row">
+            <input type="text" placeholder="Казахский" data-li="2" oninput="upd()" style="background:var(--g1);border:1px solid var(--g3);color:var(--white);padding:7px 9px;font-size:.84rem;font-family:var(--fs);width:100%;transition:border-color .2s">
+            <div class="ldots" data-ll="2">
+              <button class="ldot on" onclick="setLL(2,1)"></button>
+              <button class="ldot on" onclick="setLL(2,2)"></button>
+              <button class="ldot" onclick="setLL(2,3)"></button>
+              <button class="ldot" onclick="setLL(2,4)"></button>
+              <button class="ldot" onclick="setLL(2,5)"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Education -->
+    <div class="fsec">
+      <div class="fsec-head" onclick="tog(this)">
+        <span><span class="fsec-ico">🎓</span>Образование</span>
+        <span class="fsec-arr">▾</span>
+      </div>
+      <div class="fsec-body">
+        <div class="eblk">
+          <div class="eblk-ttl">Образование 1</div>
+          <div class="f"><label>Специальность</label><input type="text" id="e1d" placeholder="Бакалавр экономики" oninput="upd()"></div>
+          <div class="f"><label>Учебное заведение</label><input type="text" id="e1s" placeholder="КГУ им. А. Байтурсынова" oninput="upd()"></div>
+          <div class="f"><label>Год(ы)</label><input type="text" id="e1y" placeholder="2018 — 2022" oninput="upd()"></div>
+        </div>
+        <div class="eblk">
+          <div class="eblk-ttl">Образование 2</div>
+          <div class="f"><label>Специальность</label><input type="text" id="e2d" placeholder="Курс / Сертификат" oninput="upd()"></div>
+          <div class="f"><label>Учебное заведение</label><input type="text" id="e2s" placeholder="Организация" oninput="upd()"></div>
+          <div class="f"><label>Год(ы)</label><input type="text" id="e2y" placeholder="2023" oninput="upd()"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="fsec">
+      <div class="fsec-head on" onclick="tog(this)">
+        <span><span class="fsec-ico">📝</span>О себе</span>
+        <span class="fsec-arr">▾</span>
+      </div>
+      <div class="fsec-body on">
+        <div class="f"><label>Профессиональное резюме</label>
+          <textarea id="fAb" rows="4" placeholder="Опытный специалист с … лет стажем в сфере …" oninput="upd()"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Experience -->
+    <div class="fsec">
+      <div class="fsec-head on" onclick="tog(this)">
+        <span><span class="fsec-ico">💼</span>Опыт работы</span>
+        <span class="fsec-arr">▾</span>
+      </div>
+      <div class="fsec-body on">
+        <div class="eblk">
+          <div class="eblk-ttl">Место работы 1</div>
+          <div class="f"><label>Должность</label><input type="text" id="x1t" placeholder="Старший менеджер" oninput="upd()"></div>
+          <div class="f"><label>Компания</label><input type="text" id="x1c" placeholder="ТОО «Название»" oninput="upd()"></div>
+          <div class="f2">
+            <div class="f"><label>Период</label><input type="text" id="x1p" placeholder="2021 — наст. вр." oninput="upd()"></div>
+            <div class="f"><label>Город</label><input type="text" id="x1ci" placeholder="Костанай" oninput="upd()"></div>
+          </div>
+          <div class="f"><label>Обязанности / Достижения</label><textarea id="x1d" rows="3" placeholder="Управление командой, работа с клиентами…" oninput="upd()"></textarea></div>
+        </div>
+        <div class="eblk">
+          <div class="eblk-ttl">Место работы 2</div>
+          <div class="f"><label>Должность</label><input type="text" id="x2t" placeholder="Менеджер" oninput="upd()"></div>
+          <div class="f"><label>Компания</label><input type="text" id="x2c" placeholder="ТОО «Предыдущая»" oninput="upd()"></div>
+          <div class="f2">
+            <div class="f"><label>Период</label><input type="text" id="x2p" placeholder="2019 — 2021" oninput="upd()"></div>
+            <div class="f"><label>Город</label><input type="text" id="x2ci" placeholder="Костанай" oninput="upd()"></div>
+          </div>
+          <div class="f"><label>Обязанности / Достижения</label><textarea id="x2d" rows="3" placeholder="…" oninput="upd()"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional -->
+    <div class="fsec">
+      <div class="fsec-head" onclick="tog(this)">
+        <span><span class="fsec-ico">📋</span>Дополнительно</span>
+        <span class="fsec-arr">▾</span>
+      </div>
+      <div class="fsec-body">
+        <div class="f"><label>Личные качества</label><input type="text" id="fQu" placeholder="Ответственный, коммуникабельный" oninput="upd()"></div>
+        <div class="f"><label>Курсы / Сертификаты</label><input type="text" id="fCo" placeholder="1С, Microsoft Office, …" oninput="upd()"></div>
+        <div class="f"><label>Хобби и интересы</label><input type="text" id="fHo" placeholder="Чтение, спорт, путешествия" oninput="upd()"></div>
+        <div class="f2">
+          <div class="f"><label>Командировки</label>
+            <select id="fTr" onchange="upd()">
+              <option value="">—</option>
+              <option>Готов</option>
+              <option>Не готов</option>
+              <option>При необходимости</option>
+            </select>
+          </div>
+          <div class="f"><label>Переезд</label>
+            <select id="fRe" onchange="upd()">
+              <option value="">—</option>
+              <option>Готов</option>
+              <option>Не готов</option>
+              <option>Рассмотрю</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actrow">
+      <button class="btn-pdf" id="btnPdf" onclick="savePDF()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Сохранить PDF
+      </button>
+      <button class="btn-prt" onclick="window.print()">
+        <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Печать
+      </button>
+    </div>
+
+  </aside><!-- /form-panel -->
+
+  <!-- ══════════════════════ PREVIEW PANEL ══════════════════════ -->
+  <section class="preview-panel" id="pp">
+    <p class="prev-lbl">Предпросмотр резюме — A4</p>
+    <div class="rv-scale-wrap" id="scWrap">
+
+      <!-- ══════════════ RESUME DOM ══════════════ -->
+      <div id="rvEl">
+
+        <!-- SIDEBAR -->
+        <div class="rv-sb">
+          <div class="rv-sb-top"></div>
+
+          <!-- Photo -->
+          <div class="rv-photo-wrap">
+            <div class="rv-ring" id="rvRing">
+              <div class="rv-ph-placeholder" id="rvPhPh">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#7A8EAE" stroke-width="1.2">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>Фото</span>
+              </div>
+              <img id="rvPh" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">
+            </div>
+          </div>
+
+          <!-- Name block -->
+          <div class="rv-nameblk">
+            <div class="rv-fn" id="rvFn">ИМЯ</div>
+            <div class="rv-ln" id="rvLn">ФАМИЛИЯ</div>
+            <div class="rv-ndiv" id="rvNDiv"></div>
+            <div class="rv-pos" id="rvPos">ЖЕЛАЕМАЯ ДОЛЖНОСТЬ</div>
+          </div>
+
+          <!-- Contacts -->
+          <div class="rv-sbs">
+            <div class="rv-sbt" id="sbContacts">Контакты</div>
+            <div id="rvCont">
+              <div class="rv-ci"><span class="rv-cl">Тел.:</span><span class="rv-cv" id="rvPhV">Не указан</span></div>
+              <div class="rv-ci"><span class="rv-cl">Email:</span><span class="rv-cv" id="rvEmV">Не указан</span></div>
+              <div class="rv-ci"><span class="rv-cl">Город:</span><span class="rv-cv" id="rvCtV">Не указан</span></div>
+              <div class="rv-ci" id="rvLiRow"><span class="rv-cl">Web:</span><span class="rv-cv" id="rvLiV">—</span></div>
+            </div>
+          </div>
+
+          <!-- Skills -->
+          <div class="rv-sbs">
+            <div class="rv-sbt">Ключевые навыки</div>
+            <div id="rvSkills"></div>
+          </div>
+
+          <!-- Languages -->
+          <div class="rv-sbs">
+            <div class="rv-sbt">Языки</div>
+            <div id="rvLangs"></div>
+          </div>
+
+          <!-- Education -->
+          <div class="rv-sbs">
+            <div class="rv-sbt">Образование</div>
+            <div id="rvEdu"></div>
+          </div>
+
+          <div class="rv-sb-spacer"></div>
+          <div class="rv-sb-bot"></div>
+        </div>
+
+        <!-- MAIN AREA -->
+        <div class="rv-main">
+          <div class="rv-main-top"></div>
+          <div class="rv-corner"></div>
+          <div class="rv-wm">РЕЗЮМЕ</div>
+          <div class="rv-mc">
+
+            <!-- About -->
+            <div class="rv-ms">
+              <div class="rv-msh"><span class="rv-msttl">О себе / Профессиональное резюме</span></div>
+              <div class="rv-abox emp" id="rvAb">Напишите краткое описание о себе...</div>
+            </div>
+
+            <!-- Experience -->
+            <div class="rv-ms">
+              <div class="rv-msh"><span class="rv-msttl">Опыт работы</span></div>
+              <div id="rvExpWrap"></div>
+            </div>
+
+            <!-- Additional -->
+            <div class="rv-ms">
+              <div class="rv-msh"><span class="rv-msttl">Дополнительные сведения</span></div>
+              <div class="rv-addg">
+                <div>
+                  <div class="rv-adl">Личные качества</div>
+                  <div class="rv-adv emp" id="rvQu">—</div>
+                </div>
+                <div>
+                  <div class="rv-adl">Командировки / Переезд</div>
+                  <div class="rv-adv emp" id="rvTr">—</div>
+                </div>
+                <div style="grid-column:span 2">
+                  <div class="rv-adl">Курсы и сертификаты</div>
+                  <div class="rv-adv emp" id="rvCo">—</div>
+                </div>
+                <div style="grid-column:span 2">
+                  <div class="rv-adl">Хобби и интересы</div>
+                  <div class="rv-adv emp" id="rvHo">—</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="rv-foot">
+              <span class="rv-ftxt">Дата заполнения: ___________________</span>
+              <span class="rv-ftxt">Подпись: ___________________</span>
+            </div>
+          </div>
+          <div class="rv-mbot"></div>
+        </div>
+
+      </div><!-- /#rvEl -->
+    </div>
+  </section>
+
+</div><!-- /.editor-wrap -->
+
+<div id="toast">✓ PDF сохранён</div>
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+// ─────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────
+let ACC = '#C8A96E';
+let photo = null;
+const LL  = [5, 3, 2]; // lang levels
+
+// ─────────────────────────────────────────────────
+//  SCALE PREVIEW
+// ─────────────────────────────────────────────────
+function scale(){
+  const el = document.getElementById('rvEl');
+  const w  = document.getElementById('scWrap').clientWidth - 8;
+  const s  = Math.min(1, w / 794);
+  el.style.transform = `scale(${s})`;
+  el.style.marginBottom = ((1123 * s) - 1123) + 'px';
+  document.getElementById('scWrap').style.height = (1123 * s) + 'px';
+}
+window.addEventListener('resize', scale);
+setTimeout(scale, 150);
+
+// ─────────────────────────────────────────────────
+//  ACCORDION
+// ─────────────────────────────────────────────────
+function tog(h){
+  h.classList.toggle('on');
+  h.nextElementSibling.classList.toggle('on');
+}
+
+// ─────────────────────────────────────────────────
+//  ACCENT COLOR
+// ─────────────────────────────────────────────────
+function setAcc(el){
+  document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');
+  ACC = el.dataset.c;
+  applyAcc();
+}
+
+function applyAcc(){
+  const rv = document.getElementById('rvEl');
+  rv.style.setProperty('--ra', ACC);
+
+  // Inject pseudo-element override
+  let st = document.getElementById('_ast');
+  if(!st){ st=document.createElement('style'); st.id='_ast'; document.head.appendChild(st); }
+  st.textContent = `#rvEl .rv-msh::before{background:${ACC}!important}`;
+
+  // Direct DOM updates for elements that need it
+  const sel = (s) => rv.querySelectorAll(s);
+  sel('.rv-sb-top,.rv-sb-bot,.rv-ndiv').forEach(e=>e.style.background=ACC);
+  sel('.rv-ring').forEach(e=>e.style.borderColor=ACC);
+  sel('.rv-sbt').forEach(e=>{e.style.color=ACC;e.style.borderBottomColor=ACC});
+  sel('.rv-cl').forEach(e=>e.style.color=ACC);
+  sel('.rv-sdot').forEach(e=>e.style.background=ACC);
+  sel('.rv-ld.f').forEach(e=>e.style.background=ACC);
+  sel('.rv-ebar').forEach(e=>e.style.background=ACC);
+  sel('.rv-edot').forEach(e=>e.style.background=ACC);
+  sel('.rv-eperiod').forEach(e=>e.style.color=ACC);
+
+  // Update lang dot buttons styling
+  document.querySelectorAll('.ldot.on').forEach(e=>{
+    e.style.background=ACC; e.style.borderColor=ACC;
+  });
+}
+
+// ─────────────────────────────────────────────────
+//  PHOTO
+// ─────────────────────────────────────────────────
+function loadPhoto(ev){
+  const f = ev.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    photo = e.target.result;
+    const img = document.getElementById('rvPh');
+    img.src = photo; img.style.display = 'block';
+    document.getElementById('rvPhPh').style.display = 'none';
+    const th = document.getElementById('pThumb');
+    th.src = photo; th.style.display = 'block';
+    document.getElementById('pIco').style.display = 'none';
+    document.getElementById('pTxt').textContent = '✓ Фото загружено';
+  };
+  r.readAsDataURL(f);
+}
+
+// ─────────────────────────────────────────────────
+//  LANG LEVEL
+// ─────────────────────────────────────────────────
+function setLL(idx, lv){
+  LL[idx] = lv;
+  const btns = document.querySelectorAll(`[data-ll="${idx}"] .ldot`);
+  btns.forEach((b,i)=>{
+    if(i < lv){ b.classList.add('on'); b.style.background=ACC; b.style.borderColor=ACC; }
+    else { b.classList.remove('on'); b.style.background=''; b.style.borderColor=''; }
+  });
+  upd();
+}
+
+// ─────────────────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────────────────
+const gv = id => (document.getElementById(id)?.value?.trim()||'');
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// ─────────────────────────────────────────────────
+//  UPDATE PREVIEW
+// ─────────────────────────────────────────────────
+function upd(){
+  const fn=gv('fFn'), ln=gv('fLn');
+  document.getElementById('rvFn').textContent = fn||'ИМЯ';
+  document.getElementById('rvLn').textContent = ln||'ФАМИЛИЯ';
+  document.getElementById('rvPos').textContent = gv('fPos')||'ЖЕЛАЕМАЯ ДОЛЖНОСТЬ';
+
+  // Contacts
+  document.getElementById('rvPhV').textContent = gv('fPh')||'Не указан';
+  document.getElementById('rvEmV').textContent = gv('fEm')||'Не указан';
+  document.getElementById('rvCtV').textContent = gv('fCt')||'Не указан';
+  const li = gv('fLi');
+  document.getElementById('rvLiV').textContent = li||'—';
+  document.getElementById('rvLiRow').style.display = li ? 'flex' : 'none';
+
+  // Skills
+  const sInps = document.querySelectorAll('#skillsWrap input');
+  let sh = '';
+  sInps.forEach(inp=>{
+    const v=inp.value.trim();
+    sh += v
+      ? `<div class="rv-skill"><div class="rv-sdot" style="background:${ACC}"></div><div class="rv-stxt">${esc(v)}</div></div>`
+      : `<div class="rv-sempty"></div>`;
+  });
+  document.getElementById('rvSkills').innerHTML = sh;
+
+  // Languages
+  const lInps = document.querySelectorAll('[data-li]');
+  let lh = '';
+  const defL = ['Русский','Английский','Казахский'];
+  lInps.forEach((inp,i)=>{
+    const nm = inp.value.trim()||defL[i];
+    const lv = LL[i]||0;
+    let dh='';
+    for(let d=1;d<=5;d++){
+      dh += `<div class="rv-ld ${d<=lv?'f':'e'}" style="${d<=lv?`background:${ACC}`:''}"></div>`;
+    }
+    lh += `<div class="rv-lang"><div class="rv-lname">${esc(nm)}</div><div class="rv-ldots">${dh}</div></div>`;
+  });
+  document.getElementById('rvLangs').innerHTML = lh;
+
+  // Education
+  let eh='';
+  [1,2].forEach(n=>{
+    const d=gv(`e${n}d`), s=gv(`e${n}s`), y=gv(`e${n}y`);
+    if(d||s){
+      eh += `<div class="rv-edu">
+        <div class="rv-ebar" style="background:${ACC}"></div>
+        <div>
+          ${d?`<div class="rv-edeg">${esc(d)}</div>`:''}
+          ${s?`<div class="rv-esch">${esc(s)}</div>`:''}
+          ${y?`<div class="rv-eyr">${esc(y)}</div>`:''}
+        </div>
+      </div>`;
+    }
+  });
+  document.getElementById('rvEdu').innerHTML = eh||'<div style="font-family:Raleway,sans-serif;font-size:7px;color:#5A6E99">Не заполнено</div>';
+
+  // About
+  const ab=gv('fAb');
+  const abEl=document.getElementById('rvAb');
+  if(ab){ abEl.innerHTML=esc(ab).replace(/\n/g,'<br>'); abEl.classList.remove('emp'); }
+  else  { abEl.innerHTML='Напишите краткое описание о себе...'; abEl.classList.add('emp'); }
+
+  // Experience
+  let xh='';
+  [1,2].forEach(n=>{
+    const t=gv(`x${n}t`), c=gv(`x${n}c`), p=gv(`x${n}p`), ci=gv(`x${n}ci`), d=gv(`x${n}d`);
+    xh += `<div class="rv-exp">
+      <div class="rv-etl">
+        <div class="rv-edot" style="background:${ACC}"></div>
+        <div class="rv-eline"></div>
+      </div>
+      <div class="rv-econt">
+        <div class="rv-ehdr">
+          <div class="rv-ettl">${t?esc(t):'<span style="color:#B8C4D8;font-style:italic">Должность</span>'}</div>
+          ${p?`<div class="rv-eperiod" style="color:${ACC}">${esc(p)}</div>`:''}
+        </div>
+        ${c?`<div class="rv-eco">${esc(c)}</div>`:''}
+        ${ci?`<div class="rv-ecity">📍 ${esc(ci)}</div>`:''}
+        <div class="rv-edesc${d?'':' emp'}">${d?esc(d).replace(/\n/g,'<br>'):'Опишите обязанности и достижения'}</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('rvExpWrap').innerHTML = xh;
+
+  // Additional
+  const setAddV = (id, val) => {
+    const el=document.getElementById(id);
+    if(val){ el.innerHTML=esc(val); el.classList.remove('emp'); }
+    else   { el.innerHTML='—'; el.classList.add('emp'); }
+  };
+  setAddV('rvQu', gv('fQu'));
+  const tr=gv('fTr'), re=gv('fRe');
+  setAddV('rvTr', [tr,re].filter(Boolean).join(' / '));
+  setAddV('rvCo', gv('fCo'));
+  setAddV('rvHo', gv('fHo'));
+
+  applyAcc();
+}
+
+// ─────────────────────────────────────────────────
+//  SAVE PDF
+// ─────────────────────────────────────────────────
+async function savePDF(){
+  const btn = document.getElementById('btnPdf');
+  btn.classList.add('busy');
+  btn.innerHTML = '⏳ Генерация PDF...';
+
+  const el = document.getElementById('rvEl');
+  const origT = el.style.transform;
+  const origM = el.style.marginBottom;
+  el.style.transform = 'scale(1)';
+  el.style.marginBottom = '0';
+  document.getElementById('scWrap').style.height = '1123px';
+
+  await new Promise(r=>setTimeout(r, 250));
+
+  try {
+    const canvas = await html2canvas(el, {
+      scale: 2, useCORS: true, allowTaint: true,
+      logging: false, width: 794, height: 1123,
+      backgroundColor: '#ffffff',
+    });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, 297);
+    const fn = gv('fFn'), ln = gv('fLn');
+    pdf.save((ln||fn) ? `Резюме_${ln}_${fn}.pdf` : 'Резюме.pdf');
+    toast('✓ PDF сохранён');
+  } catch(e) {
+    console.error(e);
+    toast('⚠ Ошибка. Попробуйте «Печать»');
+  } finally {
+    el.style.transform = origT;
+    el.style.marginBottom = origM;
+    scale();
+    btn.classList.remove('busy');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Сохранить PDF`;
+  }
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ─────────────────────────────────────────────────
+//  MOBILE TABS
+// ─────────────────────────────────────────────────
+function switchTab(tab, btn){
+  document.querySelectorAll('.mtab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const fp=document.getElementById('fp'), pp=document.getElementById('pp');
+  if(tab==='form'){ fp.classList.remove('mhide'); pp.classList.add('mhide'); }
+  else { fp.classList.add('mhide'); pp.classList.remove('mhide'); setTimeout(scale,50); }
+}
+
+// ─────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────
+upd();
+applyAcc();
+</script>
+</body>
+</html>
