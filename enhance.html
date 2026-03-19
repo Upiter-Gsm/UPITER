@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Улучшить фото AI — Фотосалон Юпитер</title>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --black:#060606;--white:#f4f4ef;
+  --g0:#0d0d0d;--g1:#161616;--g2:#1f1f1f;--g3:#2b2b2b;--g4:#444;--g5:#666;--g6:#999;
+  --accent:#c9ba9b;
+  --ok:#4caf78;--err:#e07a5f;
+  --fd:'Bebas Neue',sans-serif;
+  --fs:'Cormorant Garamond',serif;
+  --fm:'Space Mono',monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --ease2:cubic-bezier(.65,0,.35,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:var(--fs);-webkit-font-smoothing:antialiased;overflow-x:hidden;cursor:none}
+@media(pointer:coarse){body{cursor:auto}}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit;cursor:none}
+@media(pointer:coarse){button,input{cursor:pointer}}
+
+/* ── GRAIN & VIG ── */
+#grain{position:fixed;inset:-100%;width:300%;height:300%;pointer-events:none;z-index:9980;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain .4s steps(1) infinite}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-4%,-2%)}40%{transform:translate(2%,-4%)}60%{transform:translate(-2%,4%)}80%{transform:translate(4%,2%)}100%{transform:translate(-2%,-4%)}}
+#vig{position:fixed;inset:0;pointer-events:none;z-index:9979;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6) 100%)}
+
+/* ── CURSOR ── */
+.cur{position:fixed;pointer-events:none;z-index:9999;top:0;left:0}
+#cdot{width:8px;height:8px;background:var(--white);border-radius:50%;transform:translate(-50%,-50%);mix-blend-mode:difference;transition:width .2s var(--ease),height .2s var(--ease)}
+#cring{width:32px;height:32px;border:1px solid rgba(244,244,239,.4);border-radius:50%;transform:translate(-50%,-50%);transition:width .3s var(--ease),height .3s var(--ease),opacity .3s}
+body.hov #cdot{width:5px;height:5px}
+body.hov #cring{width:50px;height:50px;border-color:rgba(244,244,239,.2)}
+@media(pointer:coarse){.cur{display:none}}
+
+/* ── NAV ── */
+.top-bar{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 48px;background:rgba(6,6,6,.95);backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--g3);
+}
+.tbl{display:flex;align-items:center;gap:11px}
+.tbl img{height:28px;filter:invert(1);opacity:.85}
+.tbl-name{font-family:var(--fd);font-size:1.25rem;letter-spacing:.1em}
+.tb-back{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--fm);font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--g5);border:1px solid var(--g3);padding:8px 14px;
+  transition:color .3s,border-color .3s;
+}
+.tb-back:hover{color:var(--white);border-color:var(--g5)}
+.tb-back svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+/* ── HERO ── */
+.hero{
+  min-height:48vh;display:flex;flex-direction:column;justify-content:flex-end;
+  padding:100px 48px 48px;position:relative;overflow:hidden;
+  border-bottom:1px solid var(--g3);
+}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:72px 72px;mask-image:radial-gradient(ellipse 70% 80% at 40% 50%,black,transparent)}
+.orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(110px)}
+.orb-a{width:500px;height:500px;top:-5%;right:-5%;background:radial-gradient(circle,rgba(255,255,255,.04),transparent 70%);animation:orbA 13s ease-in-out infinite alternate}
+.orb-b{width:350px;height:350px;bottom:0;left:-5%;background:radial-gradient(circle,rgba(201,186,155,.03),transparent 70%);animation:orbA 9s ease-in-out infinite alternate-reverse}
+@keyframes orbA{from{transform:translate(0,0)}to{transform:translate(30px,-40px)}}
+.hero-c{position:relative;z-index:1}
+.eyebrow{display:inline-flex;align-items:center;gap:13px;font-family:var(--fm);font-size:.57rem;letter-spacing:.34em;text-transform:uppercase;color:var(--accent);margin-bottom:18px;opacity:0;animation:up .7s var(--ease) .3s forwards}
+.eyebrow::before{content:'';width:28px;height:1px;background:var(--accent)}
+@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.hero-h1{font-family:var(--fd);font-size:clamp(3rem,8.5vw,8rem);line-height:.87;text-transform:uppercase;opacity:0;animation:up .9s var(--ease) .5s forwards}
+.hero-h1 em{font-family:var(--fs);font-style:italic;font-weight:300;font-size:.44em;display:block;color:var(--g5);text-transform:none;letter-spacing:.02em;margin-top:6px}
+.hero-sub{font-family:var(--fs);font-size:clamp(.88rem,1.2vw,1.05rem);font-weight:300;color:var(--g6);max-width:500px;margin-top:18px;line-height:1.8;opacity:0;animation:up .8s var(--ease) .7s forwards}
+
+/* ── MAIN ── */
+.main{max-width:1100px;margin:0 auto;padding:52px 48px 80px}
+
+/* ── MODE TABS ── */
+.mode-tabs{display:flex;gap:2px;margin-bottom:32px}
+.mtab{
+  display:flex;align-items:center;gap:9px;
+  padding:14px 22px;background:var(--g1);border:1px solid var(--g2);
+  font-family:var(--fm);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--g5);
+  transition:background .25s,color .25s,border-color .25s;flex:1;justify-content:center;
+}
+.mtab:hover{background:var(--g2);color:var(--white)}
+.mtab.on{background:var(--g2);border-color:var(--accent);color:var(--white)}
+.mtab span{font-size:1rem}
+
+/* ── UPLOAD ZONE ── */
+.dropzone{
+  border:1px dashed var(--g3);background:var(--g1);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:48px 20px;cursor:pointer;transition:border-color .3s,background .3s;
+  position:relative;overflow:hidden;text-align:center;
+}
+.dropzone:hover,.dropzone.drag{border-color:var(--accent);background:rgba(201,186,155,.03)}
+.dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.dz-ico{font-size:2.4rem;opacity:.45}
+.dz-ttl{font-family:var(--fd);font-size:1.5rem;letter-spacing:.06em;text-transform:uppercase}
+.dz-sub{font-family:var(--fm);font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--g5)}
+
+/* ── MODE INFO ── */
+.mode-info{
+  margin-top:12px;padding:12px 16px;background:var(--g1);border:1px solid var(--g2);
+  font-family:var(--fm);font-size:.55rem;letter-spacing:.13em;text-transform:uppercase;color:var(--g5);
+  display:flex;align-items:flex-start;gap:9px;
+}
+.mode-info svg{flex-shrink:0;margin-top:1px;width:13px;height:13px;stroke:var(--accent);fill:none;stroke-width:1.5}
+
+/* ── SETTINGS ── */
+.settings{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:22px;display:none}
+.settings.show{display:grid}
+.sfield{display:flex;flex-direction:column;gap:5px}
+.sfield label{font-family:var(--fm);font-size:.53rem;letter-spacing:.18em;text-transform:uppercase;color:var(--g5)}
+.sfield input[type=range]{accent-color:var(--accent);cursor:pointer;width:100%}
+.sv{font-family:var(--fd);font-size:1.1rem;color:var(--accent)}
+
+/* ── ACTION BUTTON ── */
+.actrow{display:flex;gap:10px;margin-top:22px}
+.btn-go{
+  flex:1;display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  background:var(--white);color:var(--black);padding:14px 28px;
+  font-family:var(--fm);font-size:.63rem;letter-spacing:.16em;text-transform:uppercase;
+  border:1px solid transparent;transition:background .3s,color .3s,border-color .3s,transform .3s var(--ease);
+}
+.btn-go:hover{background:transparent;color:var(--white);border-color:var(--white);transform:translateY(-2px)}
+.btn-go:disabled{opacity:.3;pointer-events:none}
+.btn-go svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+/* ── PROGRESS ── */
+.progress{display:none;margin-top:28px;padding:20px 22px;background:var(--g1);border:1px solid var(--g2)}
+.progress.show{display:block}
+.pr-lbl{font-family:var(--fm);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--g5);margin-bottom:10px;display:flex;justify-content:space-between}
+.pr-lbl strong{color:var(--white)}
+.pr-track{height:2px;background:var(--g3);overflow:hidden;border-radius:1px}
+.pr-fill{height:100%;background:var(--accent);width:0;transition:width .5s var(--ease);border-radius:1px}
+.pr-status{font-family:var(--fs);font-size:.92rem;font-weight:300;color:var(--g6);margin-top:10px;min-height:1.4em}
+.pr-dots::after{content:'';animation:dots 1.4s steps(4) infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}100%{content:''}}
+
+/* ── RESULT ── */
+.result-wrap{display:none;margin-top:36px}
+.result-wrap.show{display:block}
+.res-lbl{font-family:var(--fm);font-size:.56rem;letter-spacing:.28em;text-transform:uppercase;color:var(--g5);margin-bottom:18px;display:flex;align-items:center;gap:12px}
+.res-lbl::before,.res-lbl::after{content:'';flex:1;height:1px;background:var(--g3)}
+
+/* ── COMPARE SLIDER ── */
+.compare{
+  position:relative;overflow:hidden;cursor:ew-resize;
+  border:1px solid var(--g3);user-select:none;
+  max-width:100%;
+}
+.compare img{display:block;width:100%;height:auto;pointer-events:none}
+.compare-after{
+  position:absolute;inset:0;overflow:hidden;
+}
+.compare-after img{
+  position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;
+}
+.compare-line{
+  position:absolute;top:0;bottom:0;width:2px;background:var(--white);
+  transform:translateX(-50%);pointer-events:none;z-index:3;
+}
+.compare-handle{
+  position:absolute;top:50%;width:40px;height:40px;border-radius:50%;
+  background:var(--white);border:2px solid var(--g3);
+  transform:translate(-50%,-50%);z-index:4;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.6);
+}
+.compare-handle svg{width:16px;height:16px;fill:var(--black)}
+.compare-tag{
+  position:absolute;bottom:14px;font-family:var(--fm);font-size:.54rem;
+  letter-spacing:.18em;text-transform:uppercase;padding:5px 10px;
+  background:rgba(0,0,0,.7);border:1px solid var(--g3);z-index:5;pointer-events:none;
+}
+.tag-before{left:14px}
+.tag-after{right:14px;color:var(--ok)}
+.compare-hint{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:var(--fm);font-size:.54rem;letter-spacing:.16em;text-transform:uppercase;
+  color:rgba(255,255,255,.5);pointer-events:none;z-index:6;text-align:center;
+  animation:fadeHint 2s ease 1s forwards;
+}
+@keyframes fadeHint{to{opacity:0}}
+
+/* ── RESULT ACTIONS ── */
+.res-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn-dl{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;color:var(--ok);padding:12px 24px;
+  font-family:var(--fm);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
+  border:1px solid var(--ok);transition:background .3s,color .3s,transform .3s var(--ease);
+}
+.btn-dl:hover{background:var(--ok);color:var(--black);transform:translateY(-2px)}
+.btn-dl svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5}
+.btn-reset{
+  display:inline-flex;align-items:center;gap:7px;padding:12px 18px;
+  font-family:var(--fm);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--g5);border:1px solid var(--g3);background:none;
+  transition:color .3s,border-color .3s;
+}
+.btn-reset:hover{color:var(--err);border-color:var(--err)}
+
+/* ── ERROR / SUCCESS ── */
+.msg{margin-top:14px;padding:11px 16px;font-family:var(--fm);font-size:.57rem;letter-spacing:.14em;text-transform:uppercase;display:none}
+.msg.show{display:block}
+.msg-err{background:rgba(224,122,95,.08);border:1px solid rgba(224,122,95,.3);color:var(--err)}
+.msg-ok{background:rgba(76,175,120,.08);border:1px solid rgba(76,175,120,.3);color:var(--ok)}
+
+/* ── HOW ── */
+.how{margin-top:56px;padding-top:42px;border-top:1px solid var(--g3)}
+.how-ttl{font-family:var(--fd);font-size:clamp(2rem,4vw,3.6rem);text-transform:uppercase;margin-bottom:28px}
+.how-ttl em{font-family:var(--fs);font-style:italic;font-weight:300;font-size:.5em;display:block;color:var(--g5);text-transform:none;letter-spacing:.02em}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:2px}
+.how-card{background:var(--g1);padding:22px 18px;border:1px solid var(--g2)}
+.how-n{font-family:var(--fm);font-size:.52rem;letter-spacing:.3em;color:var(--g4);margin-bottom:10px}
+.how-title{font-family:var(--fd);font-size:1.1rem;letter-spacing:.05em;text-transform:uppercase;margin-bottom:7px}
+.how-txt{font-family:var(--fs);font-size:.86rem;font-weight:300;color:var(--g5);line-height:1.7}
+
+/* ── RESP ── */
+@media(max-width:860px){
+  .top-bar{padding:13px 20px}
+  .hero{padding:82px 20px 38px}
+  .main{padding:32px 20px 60px}
+  .mode-tabs{flex-direction:column}
+  .actrow{flex-direction:column}
+  .res-actions{flex-direction:column}
+  .btn-go,.btn-dl,.btn-reset{width:100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<div id="grain" aria-hidden="true"></div>
+<div id="vig"   aria-hidden="true"></div>
+<div class="cur" id="cdot-wrap"><div id="cdot"></div></div>
+<div class="cur" id="cring-wrap"><div id="cring"></div></div>
+
+<!-- NAV -->
+<nav class="top-bar">
+  <a href="index.html" class="tbl">
+    <img src="image/logo.png" alt="Юпитер">
+    <span class="tbl-name">Юпитер</span>
+  </a>
+  <a href="index.html" class="tb-back">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    На сайт
+  </a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="orb orb-a" aria-hidden="true"></div>
+  <div class="orb orb-b" aria-hidden="true"></div>
+  <div class="hero-c">
+    <p class="eyebrow">Фотосалон Юпитер · Нейросеть · Бесплатно</p>
+    <h1 class="hero-h1">
+      Улучшить<br>
+      <em>фото с помощью искусственного интеллекта</em>
+      фото AI
+    </h1>
+    <p class="hero-sub">Загрузите фотографию — нейросеть повысит резкость, детализацию и качество. Сравните до и после, и скачайте результат.</p>
+  </div>
+</section>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- MODE -->
+  <div class="mode-tabs">
+    <button class="mtab on" id="mAI" onclick="setMode('ai')">
+      <span>🤖</span> AI Апскейл × 4 — нейросеть
+    </button>
+    <button class="mtab" id="mLocal" onclick="setMode('local')">
+      <span>⚡</span> Быстрое улучшение — мгновенно
+    </button>
+  </div>
+
+  <!-- INFO -->
+  <div class="mode-info" id="modeInfo">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="modeInfoTxt">Нейросеть Swin2SR от Microsoft увеличивает изображение в 4× и восстанавливает детали. Обработка ~30–60 сек, ожидание в очереди возможно. Файлы не хранятся на серверах.</span>
+  </div>
+
+  <!-- DROP -->
+  <label class="dropzone" id="dz" style="margin-top:22px">
+    <input type="file" id="fileIn" accept="image/jpeg,image/png,image/webp,image/bmp">
+    <span class="dz-ico" id="dzIco">🖼️</span>
+    <span class="dz-ttl" id="dzTtl">Перетащите или выберите фото</span>
+    <span class="dz-sub" id="dzSub">JPG, PNG, WebP — любой размер</span>
+  </label>
+
+  <!-- LOCAL SETTINGS -->
+  <div class="settings" id="localSettings">
+    <div class="sfield">
+      <label>Резкость: <span class="sv" id="svSharp">70</span>%</label>
+      <input type="range" id="rSharp" min="0" max="100" value="70" oninput="document.getElementById('svSharp').textContent=this.value">
+    </div>
+    <div class="sfield">
+      <label>Яркость: <span class="sv" id="svBright">0</span></label>
+      <input type="range" id="rBright" min="-50" max="50" value="0" oninput="document.getElementById('svBright').textContent=this.value">
+    </div>
+    <div class="sfield">
+      <label>Контраст: <span class="sv" id="svContrast">0</span></label>
+      <input type="range" id="rContrast" min="-50" max="50" value="0" oninput="document.getElementById('svContrast').textContent=this.value">
+    </div>
+    <div class="sfield">
+      <label>Насыщенность: <span class="sv" id="svSat">0</span></label>
+      <input type="range" id="rSat" min="-50" max="50" value="0" oninput="document.getElementById('svSat').textContent=this.value">
+    </div>
+    <div class="sfield">
+      <label>Шумоподавление: <span class="sv" id="svNoise">20</span>%</label>
+      <input type="range" id="rNoise" min="0" max="80" value="20" oninput="document.getElementById('svNoise').textContent=this.value">
+    </div>
+  </div>
+
+  <!-- ACTION -->
+  <div class="actrow">
+    <button class="btn-go" id="btnGo" disabled onclick="enhance()">
+      <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      <span id="btnGoTxt">Улучшить фото</span>
+    </button>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress" id="prog">
+    <div class="pr-lbl"><span>Обработка</span><strong id="prPct">0%</strong></div>
+    <div class="pr-track"><div class="pr-fill" id="prFill"></div></div>
+    <div class="pr-status" id="prStatus"></div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="msg msg-err" id="msgErr"></div>
+  <div class="msg msg-ok" id="msgOk"></div>
+
+  <!-- RESULT -->
+  <div class="result-wrap" id="resultWrap">
+    <p class="res-lbl">Результат — тяните разделитель для сравнения</p>
+    <div class="compare" id="compare">
+      <img id="imgBefore" src="" alt="До">
+      <div class="compare-after" id="cAfter">
+        <img id="imgAfter" src="" alt="После">
+      </div>
+      <div class="compare-line" id="cLine"></div>
+      <div class="compare-handle" id="cHandle">
+        <svg viewBox="0 0 24 24"><path d="M8 5l-5 7 5 7M16 5l5 7-5 7"/></svg>
+      </div>
+      <span class="compare-tag tag-before">До</span>
+      <span class="compare-tag tag-after">После ✓</span>
+      <div class="compare-hint">← Тяните →</div>
+    </div>
+    <div class="res-actions">
+      <button class="btn-dl" id="btnDl" onclick="download()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Скачать улучшенное фото
+      </button>
+      <button class="btn-reset" onclick="reset()">Загрузить другое фото</button>
+    </div>
+  </div>
+
+  <!-- HOW -->
+  <div class="how">
+    <h2 class="how-ttl">Как это<br><em>работает</em></h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-n">01 —</div>
+        <div class="how-title">Выберите режим</div>
+        <div class="how-txt">AI Апскейл — нейросеть ×4. Быстрое — мгновенно на вашем устройстве.</div>
+      </div>
+      <div class="how-card">
+        <div class="how-n">02 —</div>
+        <div class="how-title">Загрузите фото</div>
+        <div class="how-txt">Перетащите или выберите JPG, PNG, WebP. Исходник не обрезается.</div>
+      </div>
+      <div class="how-card">
+        <div class="how-n">03 —</div>
+        <div class="how-title">Подождите</div>
+        <div class="how-txt">AI обрабатывает 30–60 сек. Быстрое улучшение — мгновенно.</div>
+      </div>
+      <div class="how-card">
+        <div class="how-n">04 —</div>
+        <div class="how-title">Сравните и скачайте</div>
+        <div class="how-txt">Ползунок До/После. Нравится — скачайте одним нажатием.</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ─────────────────────────────────────────────────
+//  CONFIG
+// ─────────────────────────────────────────────────
+const HF_TOKEN = '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';
+// Microsoft Swin2SR — realworld 4x upscaler, стабильная модель с 2022
+const HF_MODEL = 'caidas/swin2SR-realworld-sr-x4-64-bsrgan-psnr';
+// Fallback model
+const HF_MODEL2 = 'caidas/swin2SR-classical-sr-x2-64';
+
+let mode = 'ai';
+let origFile = null;
+let origURL  = null;
+let resultBlob = null;
+let resultURL  = null;
+let sliderX = 50;
+let isDragging = false;
+
+// ─────────────────────────────────────────────────
+//  CURSOR (desktop)
+// ─────────────────────────────────────────────────
+if(window.matchMedia('(pointer:fine)').matches){
+  const cd=document.getElementById('cdot-wrap'), cr=document.getElementById('cring-wrap');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cd.style.transform=`translate(${mx}px,${my}px)`});
+  (function raf(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;cr.style.transform=`translate(${rx}px,${ry}px)`;requestAnimationFrame(raf)})();
+  document.addEventListener('mouseover',e=>{if(e.target.closest('a,button,label'))document.body.classList.add('hov')});
+  document.addEventListener('mouseout',e=>{if(e.target.closest('a,button,label'))document.body.classList.remove('hov')});
+}
+
+// ─────────────────────────────────────────────────
+//  MODE
+// ─────────────────────────────────────────────────
+const modeInfos = {
+  ai: 'Нейросеть Swin2SR от Microsoft увеличивает изображение в 4× и восстанавливает детали. Обработка ~30–60 сек. Файлы не хранятся на серверах.',
+  local: 'Мгновенная обработка прямо в браузере: резкость, контраст, яркость, насыщенность, шумоподавление. Никаких серверов — 100% приватно.'
+};
+
+function setMode(m){
+  mode=m;
+  document.getElementById('mAI').classList.toggle('on',m==='ai');
+  document.getElementById('mLocal').classList.toggle('on',m==='local');
+  document.getElementById('modeInfoTxt').textContent = modeInfos[m];
+  document.getElementById('localSettings').classList.toggle('show', m==='local');
+  document.getElementById('btnGoTxt').textContent = m==='ai' ? 'Улучшить фото AI' : 'Применить улучшения';
+}
+
+// ─────────────────────────────────────────────────
+//  FILE INPUT
+// ─────────────────────────────────────────────────
+document.getElementById('fileIn').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  loadFile(f);
+});
+
+const dz = document.getElementById('dz');
+['dragover','dragenter'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag')}));
+['dragleave','dragend'].forEach(ev=>dz.addEventListener(ev,()=>dz.classList.remove('drag')));
+dz.addEventListener('drop',e=>{
+  e.preventDefault(); dz.classList.remove('drag');
+  const f = e.dataTransfer.files[0]; if(!f) return;
+  loadFile(f);
+});
+
+function loadFile(f){
+  if(!f.type.startsWith('image/')){showErr('Пожалуйста, выберите изображение');return}
+  origFile=f;
+  if(origURL) URL.revokeObjectURL(origURL);
+  origURL=URL.createObjectURL(f);
+  document.getElementById('dzIco').textContent='✓';
+  document.getElementById('dzTtl').textContent=f.name;
+  document.getElementById('dzSub').textContent=fmtSize(f.size)+' · нажмите чтобы изменить';
+  document.getElementById('btnGo').disabled=false;
+  hideMsg(); hideResult();
+}
+
+// ─────────────────────────────────────────────────
+//  ENHANCE
+// ─────────────────────────────────────────────────
+async function enhance(){
+  if(!origFile){showErr('Сначала загрузите фото');return}
+  const btn=document.getElementById('btnGo');
+  btn.disabled=true;
+  hideMsg(); hideResult();
+  showProgress('Подготовка изображения', 5);
+
+  try{
+    if(mode==='ai'){
+      await enhanceAI();
+    } else {
+      await enhanceLocal();
+    }
+  } catch(e){
+    console.error(e);
+    showErr('Ошибка: '+e.message+'. Попробуйте режим «Быстрое улучшение».');
+  } finally {
+    btn.disabled=false;
+    hideProgress();
+  }
+}
+
+// ─────────────────────────────────────────────────
+//  AI MODE — HuggingFace Inference API
+// ─────────────────────────────────────────────────
+async function enhanceAI(){
+  showProgress('Отправка на сервер нейросети', 15);
+
+  // Read file as ArrayBuffer
+  const buf = await origFile.arrayBuffer();
+
+  // Try primary model, then fallback
+  let result = null;
+  for(const model of [HF_MODEL, HF_MODEL2]){
+    showProgress(`Обработка нейросетью (${model.split('/')[1]})`, 30);
+    try {
+      result = await callHF(model, buf, origFile.type);
+      break;
+    } catch(e) {
+      console.warn('Model failed:', model, e.message);
+      if(model === HF_MODEL2) throw e; // both failed
+      showProgress('Пробуем запасную модель', 25);
+    }
+  }
+
+  showProgress('Получение результата', 80);
+  if(!result || result.size === 0) throw new Error('Пустой ответ от сервера');
+
+  showProgress('Готово!', 100);
+  showResult(result);
+}
+
+async function callHF(model, buf, mimeType){
+  // Determine content type to send
+  const ct = mimeType === 'image/png' ? 'image/png' : 'image/jpeg';
+
+  const resp = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+    method:'POST',
+    headers:{
+      'Authorization': `Bearer ${HF_TOKEN}`,
+      'Content-Type': ct,
+      'Accept': 'image/png,image/jpeg,image/*,*/*'
+    },
+    body: buf
+  });
+
+  if(resp.status === 503){
+    // Model loading — retry once after delay
+    showProgress('Модель загружается, ждём', 20);
+    await sleep(12000);
+    return callHF(model, buf, mimeType);
+  }
+
+  if(!resp.ok){
+    const txt = await resp.text().catch(()=>'');
+    throw new Error(`HF API: ${resp.status} — ${txt.slice(0,80)}`);
+  }
+
+  const blob = await resp.blob();
+  return blob;
+}
+
+// ─────────────────────────────────────────────────
+//  LOCAL MODE — Canvas processing
+// ─────────────────────────────────────────────────
+async function enhanceLocal(){
+  showProgress('Загрузка изображения', 10);
+
+  const img = await loadImg(origURL);
+  const W=img.naturalWidth, H=img.naturalHeight;
+
+  const canvas=document.createElement('canvas');
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+
+  showProgress('Применение улучшений', 30);
+  ctx.drawImage(img,0,0,W,H);
+  let id=ctx.getImageData(0,0,W,H);
+
+  const sharp   = parseInt(document.getElementById('rSharp').value)/100;
+  const bright  = parseInt(document.getElementById('rBright').value);
+  const contrast= parseInt(document.getElementById('rContrast').value);
+  const sat     = parseInt(document.getElementById('rSat').value);
+  const noise   = parseInt(document.getElementById('rNoise').value)/100;
+
+  showProgress('Шумоподавление', 45);
+  if(noise>0) id=boxBlur(id, W, H, Math.round(noise*2));
+
+  showProgress('Резкость и контраст', 65);
+  id=adjustBCS(id, bright, contrast, sat);
+  if(sharp>0) id=unsharpMask(id, W, H, sharp);
+
+  showProgress('Финализация', 88);
+  ctx.putImageData(id,0,0);
+
+  const blob = await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.95));
+  showProgress('Готово!', 100);
+  showResult(blob);
+}
+
+// ─────────────────────────────────────────────────
+//  IMAGE PROCESSING HELPERS
+// ─────────────────────────────────────────────────
+function boxBlur(id, W, H, r){
+  const d=new Uint8ClampedArray(id.data);
+  const src=id.data;
+  const d2=new Uint8ClampedArray(d);
+  if(r<1) return id;
+  // Horizontal pass
+  for(let y=0;y<H;y++){
+    for(let x=0;x<W;x++){
+      let r2=0,g=0,b=0,cnt=0;
+      for(let kx=-r;kx<=r;kx++){
+        const cx=Math.min(Math.max(x+kx,0),W-1);
+        const i=(y*W+cx)*4;
+        r2+=src[i];g+=src[i+1];b+=src[i+2];cnt++;
+      }
+      const i=(y*W+x)*4;
+      d[i]=r2/cnt;d[i+1]=g/cnt;d[i+2]=b/cnt;d[i+3]=src[i+3];
+    }
+  }
+  // Vertical pass
+  for(let y=0;y<H;y++){
+    for(let x=0;x<W;x++){
+      let r2=0,g=0,b=0,cnt=0;
+      for(let ky=-r;ky<=r;ky++){
+        const cy=Math.min(Math.max(y+ky,0),H-1);
+        const i=(cy*W+x)*4;
+        r2+=d[i];g+=d[i+1];b+=d[i+2];cnt++;
+      }
+      const i=(y*W+x)*4;
+      d2[i]=r2/cnt;d2[i+1]=g/cnt;d2[i+2]=b/cnt;d2[i+3]=src[i+3];
+    }
+  }
+  return new ImageData(d2, W, H);
+}
+
+function unsharpMask(id, W, H, amount){
+  const blurred=boxBlur(new ImageData(new Uint8ClampedArray(id.data),W,H),W,H,1);
+  const d=id.data, bl=blurred.data;
+  const out=new Uint8ClampedArray(d);
+  const a = amount * 1.5;
+  for(let i=0;i<d.length;i+=4){
+    out[i]  =clamp(d[i]  + a*(d[i]  -bl[i]));
+    out[i+1]=clamp(d[i+1]+ a*(d[i+1]-bl[i+1]));
+    out[i+2]=clamp(d[i+2]+ a*(d[i+2]-bl[i+2]));
+    out[i+3]=d[i+3];
+  }
+  return new ImageData(out, W, H);
+}
+
+function adjustBCS(id, brightness, contrast, saturation){
+  const d=id.data;
+  const out=new Uint8ClampedArray(d);
+  const cf=contrast/100;
+  const bf=brightness;
+  const sf=saturation/100;
+  const contFactor=(259*(cf*100+255))/(255*(259-cf*100));
+  for(let i=0;i<d.length;i+=4){
+    let r=d[i],g=d[i+1],b=d[i+2];
+    // brightness
+    r+=bf;g+=bf;b+=bf;
+    // contrast
+    r=contFactor*(r-128)+128;
+    g=contFactor*(g-128)+128;
+    b=contFactor*(b-128)+128;
+    // saturation
+    const gray=0.299*r+0.587*g+0.114*b;
+    r=gray+sf*(r-gray)+r*(1-Math.abs(sf));
+    g=gray+sf*(g-gray)+g*(1-Math.abs(sf));
+    b=gray+sf*(b-gray)+b*(1-Math.abs(sf));
+    // Actually simpler sat:
+    out[i]  =clamp(gray+(r-gray)*(1+sf));
+    out[i+1]=clamp(gray+(g-gray)*(1+sf));
+    out[i+2]=clamp(gray+(b-gray)*(1+sf));
+    out[i+3]=d[i+3];
+  }
+  return new ImageData(out, W, H);
+}
+
+function clamp(v){return Math.min(255,Math.max(0,Math.round(v)))}
+
+// ─────────────────────────────────────────────────
+//  SHOW RESULT + COMPARE SLIDER
+// ─────────────────────────────────────────────────
+function showResult(blob){
+  if(resultURL) URL.revokeObjectURL(resultURL);
+  resultBlob=blob;
+  resultURL=URL.createObjectURL(blob);
+
+  document.getElementById('imgBefore').src=origURL;
+  document.getElementById('imgAfter').src=resultURL;
+
+  sliderX=50;
+  applySlider();
+  document.getElementById('resultWrap').classList.add('show');
+  document.getElementById('resultWrap').scrollIntoView({behavior:'smooth',block:'start'});
+  showOk('✓ Готово! Сравните до и после, затем скачайте результат.');
+}
+
+function applySlider(){
+  document.getElementById('cAfter').style.width=sliderX+'%';
+  document.getElementById('cLine').style.left=sliderX+'%';
+  document.getElementById('cHandle').style.left=sliderX+'%';
+}
+
+// Compare slider interaction
+const cmp=document.getElementById('compare');
+function sliderSet(e){
+  const rect=cmp.getBoundingClientRect();
+  const cx=(e.clientX||e.touches?.[0]?.clientX||0)-rect.left;
+  sliderX=Math.min(Math.max(cx/rect.width*100,0),100);
+  applySlider();
+}
+
+cmp.addEventListener('mousedown',e=>{isDragging=true;sliderSet(e)});
+cmp.addEventListener('touchstart',e=>{isDragging=true;sliderSet(e)},{passive:true});
+window.addEventListener('mousemove',e=>{if(isDragging)sliderSet(e)});
+window.addEventListener('touchmove',e=>{if(isDragging)sliderSet(e)},{passive:true});
+window.addEventListener('mouseup',()=>isDragging=false);
+window.addEventListener('touchend',()=>isDragging=false);
+
+// ─────────────────────────────────────────────────
+//  DOWNLOAD
+// ─────────────────────────────────────────────────
+function download(){
+  if(!resultURL) return;
+  const ext=resultBlob.type.includes('png')?'png':'jpg';
+  const name=(origFile?.name||'photo').replace(/\.[^.]+$/,'')+'_enhanced.'+ext;
+  const a=document.createElement('a');
+  a.href=resultURL;a.download=name;a.click();
+}
+
+// ─────────────────────────────────────────────────
+//  RESET
+// ─────────────────────────────────────────────────
+function reset(){
+  origFile=null;
+  if(origURL){URL.revokeObjectURL(origURL);origURL=null}
+  if(resultURL){URL.revokeObjectURL(resultURL);resultURL=null}
+  document.getElementById('dzIco').textContent='🖼️';
+  document.getElementById('dzTtl').textContent='Перетащите или выберите фото';
+  document.getElementById('dzSub').textContent='JPG, PNG, WebP — любой размер';
+  document.getElementById('fileIn').value='';
+  document.getElementById('btnGo').disabled=true;
+  hideMsg(); hideResult(); hideProgress();
+}
+
+// ─────────────────────────────────────────────────
+//  UI HELPERS
+// ─────────────────────────────────────────────────
+function showProgress(txt, pct){
+  const p=document.getElementById('prog');
+  p.classList.add('show');
+  document.getElementById('prFill').style.width=pct+'%';
+  document.getElementById('prPct').textContent=pct+'%';
+  document.getElementById('prStatus').innerHTML=`<span class="pr-dots">${txt}</span>`;
+}
+function hideProgress(){document.getElementById('prog').classList.remove('show')}
+function hideResult(){document.getElementById('resultWrap').classList.remove('show')}
+function showErr(m){const e=document.getElementById('msgErr');e.textContent=m;e.classList.add('show');document.getElementById('msgOk').classList.remove('show')}
+function showOk(m){const e=document.getElementById('msgOk');e.textContent=m;e.classList.add('show');document.getElementById('msgErr').classList.remove('show')}
+function hideMsg(){document.getElementById('msgErr').classList.remove('show');document.getElementById('msgOk').classList.remove('show')}
+
+function loadImg(url){
+  return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+}
+function fmtSize(b){return b<1048576?`${(b/1024).toFixed(0)} КБ`:`${(b/1048576).toFixed(1)} МБ`}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+</script>
+</body>
+</html>
