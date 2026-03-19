@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Конвертер файлов — Фотосалон Юпитер</title>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Space+Mono:wght@400;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --black:#060606;--white:#f4f4ef;
+  --g0:#0d0d0d;--g1:#161616;--g2:#1f1f1f;--g3:#2b2b2b;--g4:#444;--g5:#666;--g6:#999;
+  --accent:#c9ba9b;
+  --ok:#4caf78;--err:#e07a5f;--warn:#f0c060;
+  --fd:'Bebas Neue',sans-serif;
+  --fs:'Cormorant Garamond',serif;
+  --fm:'Space Mono',monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:var(--fs);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font-family:inherit;cursor:pointer}
+input:focus,select:focus{outline:none}
+
+/* ── GRAIN & VIG ── */
+#grain{position:fixed;inset:-100%;width:300%;height:300%;pointer-events:none;z-index:9980;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain .4s steps(1) infinite}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-4%,-2%)}40%{transform:translate(2%,-4%)}60%{transform:translate(-2%,4%)}80%{transform:translate(4%,2%)}100%{transform:translate(-2%,-4%)}}
+#vig{position:fixed;inset:0;pointer-events:none;z-index:9979;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6) 100%)}
+
+/* ── TOP NAV ── */
+.top-bar{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 48px;background:rgba(6,6,6,.95);backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--g3);
+}
+.tbl{display:flex;align-items:center;gap:11px}
+.tbl img{height:28px;filter:invert(1);opacity:.85}
+.tbl-name{font-family:var(--fd);font-size:1.25rem;letter-spacing:.1em}
+.tb-back{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--fm);font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--g5);border:1px solid var(--g3);padding:8px 14px;
+  transition:color .3s,border-color .3s;
+}
+.tb-back:hover{color:var(--white);border-color:var(--g5)}
+.tb-back svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+/* ── HERO ── */
+.hero{
+  min-height:52vh;display:flex;flex-direction:column;justify-content:flex-end;
+  padding:100px 48px 52px;position:relative;overflow:hidden;
+  border-bottom:1px solid var(--g3);
+}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:72px 72px;mask-image:radial-gradient(ellipse 70% 80% at 40% 50%,black,transparent)}
+.orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(110px)}
+.orb-a{width:600px;height:600px;top:-10%;right:-8%;background:radial-gradient(circle,rgba(255,255,255,.04),transparent 70%);animation:orbA 13s ease-in-out infinite alternate}
+.orb-b{width:380px;height:380px;bottom:0;left:-5%;background:radial-gradient(circle,rgba(201,186,155,.03),transparent 70%);animation:orbA 9s ease-in-out infinite alternate-reverse}
+@keyframes orbA{from{transform:translate(0,0)}to{transform:translate(30px,-40px)}}
+.hero-content{position:relative;z-index:1}
+.eyebrow{display:inline-flex;align-items:center;gap:13px;font-family:var(--fm);font-size:.57rem;letter-spacing:.34em;text-transform:uppercase;color:var(--accent);margin-bottom:20px;opacity:0;animation:up .7s var(--ease) .3s forwards}
+.eyebrow::before{content:'';width:30px;height:1px;background:var(--accent)}
+.hero-h1{font-family:var(--fd);font-size:clamp(3.2rem,9vw,8.5rem);line-height:.87;text-transform:uppercase;opacity:0;animation:up .9s var(--ease) .5s forwards}
+.hero-h1 em{font-family:var(--fs);font-style:italic;font-weight:300;font-size:.46em;display:block;color:var(--g5);text-transform:none;letter-spacing:.02em;margin-top:6px}
+.hero-sub{font-family:var(--fs);font-size:clamp(.9rem,1.2vw,1.1rem);font-weight:300;color:var(--g6);max-width:480px;margin-top:20px;line-height:1.8;opacity:0;animation:up .8s var(--ease) .7s forwards}
+.hero-badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;opacity:0;animation:up .8s var(--ease) .9s forwards}
+.badge{font-family:var(--fm);font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--g5);border:1px solid var(--g3);padding:6px 13px}
+.badge-accent{color:var(--accent);border-color:rgba(201,186,155,.3)}
+@keyframes up{to{opacity:1;transform:translateY(0)}}
+
+/* ── PRIVACY NOTICE ── */
+.pnote{
+  background:var(--g0);border-bottom:1px solid var(--g3);
+  padding:12px 48px;display:flex;align-items:center;gap:12px;
+}
+.pnote svg{width:14px;height:14px;flex-shrink:0;stroke:var(--ok);fill:none;stroke-width:1.5}
+.pnote p{font-family:var(--fm);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--g5)}
+.pnote strong{color:var(--ok)}
+
+/* ── MAIN ── */
+.main{max-width:1200px;margin:0 auto;padding:48px 48px 80px}
+
+/* ── ACCORDION SECTION ── */
+.asec{margin-bottom:4px}
+.asec-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 24px;background:var(--g1);border:1px solid var(--g2);
+  cursor:pointer;user-select:none;transition:background .3s;
+}
+.asec-head:hover{background:var(--g2)}
+.asec-head.open{background:var(--g2);border-color:var(--g3)}
+.asec-left{display:flex;align-items:center;gap:16px}
+.asec-icon{font-size:1.6rem}
+.asec-title{font-family:var(--fd);font-size:1.7rem;letter-spacing:.06em;text-transform:uppercase}
+.asec-sub{font-family:var(--fm);font-size:.54rem;letter-spacing:.15em;text-transform:uppercase;color:var(--g5);margin-top:2px}
+.asec-formats{display:flex;gap:6px;flex-wrap:wrap}
+.fmt{font-family:var(--fm);font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--g5);background:var(--g2);padding:3px 8px;border:1px solid var(--g3)}
+.asec-arr{font-family:var(--fm);font-size:.8rem;color:var(--g4);transition:transform .4s var(--ease)}
+.asec-head.open .asec-arr{transform:rotate(180deg)}
+.asec-body{display:none;background:var(--g0);border:1px solid var(--g2);border-top:none;padding:28px 24px}
+.asec-body.open{display:block}
+
+/* ── UPLOAD ZONE ── */
+.dropzone{
+  border:1px dashed var(--g3);background:var(--g1);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:11px;padding:36px 20px;cursor:pointer;transition:border-color .3s,background .3s;
+  position:relative;overflow:hidden;text-align:center;
+}
+.dropzone:hover,.dropzone.drag{border-color:var(--accent);background:rgba(201,186,155,.03)}
+.dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.dz-icon{font-size:2.2rem;opacity:.5}
+.dz-title{font-family:var(--fd);font-size:1.3rem;letter-spacing:.06em;text-transform:uppercase;color:var(--white)}
+.dz-hint{font-family:var(--fm);font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--g5)}
+.dz-size{font-family:var(--fm);font-size:.52rem;letter-spacing:.12em;color:var(--g4)}
+
+/* ── SETTINGS ROW ── */
+.settings{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-top:22px}
+.sfield{display:flex;flex-direction:column;gap:5px}
+.sfield label{font-family:var(--fm);font-size:.54rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g5)}
+.sfield select,.sfield input[type=range]{
+  background:var(--g1);border:1px solid var(--g3);color:var(--white);
+  padding:8px 10px;font-family:var(--fm);font-size:.72rem;letter-spacing:.08em;
+  transition:border-color .2s;appearance:none;
+}
+.sfield select:focus,.sfield input[type=range]:focus{border-color:var(--g5)}
+.sfield input[type=range]{padding:10px 6px;accent-color:var(--accent);cursor:pointer}
+.qual-val{font-family:var(--fd);font-size:1.2rem;color:var(--accent)}
+
+/* ── FILE LIST ── */
+.flist{margin-top:22px;display:flex;flex-direction:column;gap:3px}
+.fitem{
+  display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:12px;
+  background:var(--g1);border:1px solid var(--g2);padding:10px 14px;
+  transition:background .2s;
+}
+.fitem:hover{background:var(--g2)}
+.fi-ico{font-size:1rem}
+.fi-name{font-family:var(--fs);font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.fi-size{font-family:var(--fm);font-size:.52rem;letter-spacing:.1em;color:var(--g5);margin-top:2px}
+.fi-status{display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.st-wait{color:var(--g5)}
+.st-proc{color:var(--accent);animation:pulse 1.2s ease-in-out infinite}
+.st-ok{color:var(--ok)}
+.st-err{color:var(--err)}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+.fi-pbar{width:80px;height:2px;background:var(--g3);overflow:hidden;border-radius:1px}
+.fi-pfill{height:100%;background:var(--accent);width:0;transition:width .3s;border-radius:1px}
+.fi-del{background:none;border:none;color:var(--g4);font-size:.9rem;padding:4px;transition:color .3s;flex-shrink:0}
+.fi-del:hover{color:var(--err)}
+
+/* ── PROGRESS TOTAL ── */
+.prog-total{margin-top:18px;display:none}
+.prog-total.show{display:block}
+.prog-label{display:flex;justify-content:space-between;font-family:var(--fm);font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--g5);margin-bottom:6px}
+.prog-label strong{color:var(--white)}
+.prog-track{height:3px;background:var(--g3);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);width:0;transition:width .4s var(--ease);border-radius:2px}
+
+/* ── ACTION ROW ── */
+.actrow{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.btn-conv{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--white);color:var(--black);padding:12px 26px;
+  font-family:var(--fm);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
+  border:1px solid transparent;transition:background .3s,color .3s,border-color .3s,transform .3s var(--ease);
+}
+.btn-conv:hover{background:transparent;color:var(--white);border-color:var(--white);transform:translateY(-2px)}
+.btn-conv:disabled{opacity:.35;pointer-events:none}
+.btn-conv svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5}
+.btn-dl{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;color:var(--ok);padding:12px 26px;
+  font-family:var(--fm);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
+  border:1px solid var(--ok);transition:background .3s,color .3s,transform .3s var(--ease);
+}
+.btn-dl:hover{background:var(--ok);color:var(--black);transform:translateY(-2px)}
+.btn-dl:disabled{opacity:.25;pointer-events:none}
+.btn-dl svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5}
+.btn-clr{
+  display:inline-flex;align-items:center;gap:7px;background:none;
+  color:var(--g5);padding:12px 18px;font-family:var(--fm);font-size:.58rem;
+  letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--g3);
+  transition:color .3s,border-color .3s;
+}
+.btn-clr:hover{color:var(--err);border-color:var(--err)}
+
+/* ── SUMMARY ── */
+.summary{
+  display:none;margin-top:14px;padding:13px 16px;
+  background:var(--g1);border:1px solid var(--g3);
+  font-family:var(--fm);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;
+}
+.summary.show{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.sum-ok{color:var(--ok)}.sum-err{color:var(--err)}.sum-total{color:var(--g5)}
+
+/* ── HOW IT WORKS ── */
+.how{margin-top:52px;padding-top:42px;border-top:1px solid var(--g3)}
+.how-ttl{font-family:var(--fd);font-size:clamp(2rem,4vw,3.8rem);text-transform:uppercase;margin-bottom:32px}
+.how-ttl em{font-family:var(--fs);font-style:italic;font-weight:300;font-size:.52em;display:block;color:var(--g5);text-transform:none;letter-spacing:.02em}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:2px}
+.how-card{background:var(--g1);padding:26px 20px;border:1px solid var(--g2)}
+.how-n{font-family:var(--fm);font-size:.52rem;letter-spacing:.3em;color:var(--g4);margin-bottom:12px}
+.how-title{font-family:var(--fd);font-size:1.2rem;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px}
+.how-txt{font-family:var(--fs);font-size:.88rem;font-weight:300;color:var(--g5);line-height:1.7}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:var(--g1);border:1px solid var(--g3);color:var(--white);
+  padding:11px 22px;font-family:var(--fm);font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;
+  z-index:9999;opacity:0;transition:opacity .3s,transform .3s var(--ease);white-space:nowrap;pointer-events:none;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:860px){
+  .top-bar{padding:13px 20px}
+  .hero{padding:82px 20px 40px}
+  .pnote{padding:10px 20px}
+  .main{padding:28px 20px 60px}
+  .asec-formats{display:none}
+  .fi-pbar{display:none}
+  .actrow{flex-direction:column}
+  .btn-conv,.btn-dl,.btn-clr{width:100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+<div id="grain" aria-hidden="true"></div>
+<div id="vig"   aria-hidden="true"></div>
+
+<!-- NAV -->
+<nav class="top-bar">
+  <a href="index.html" class="tbl">
+    <img src="image/logo.png" alt="Юпитер">
+    <span class="tbl-name">Юпитер</span>
+  </a>
+  <a href="index.html" class="tb-back">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    На сайт
+  </a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="orb orb-a" aria-hidden="true"></div>
+  <div class="orb orb-b" aria-hidden="true"></div>
+  <div class="hero-content">
+    <p class="eyebrow">Фотосалон Юпитер · Инструменты · Бесплатно</p>
+    <h1 class="hero-h1">
+      Конвертер<br>
+      <em>изображений и документов</em>
+      файлов
+    </h1>
+    <p class="hero-sub">Конвертируйте фотографии и документы прямо в браузере — без регистрации, без ограничений, без загрузки на серверы.</p>
+    <div class="hero-badges">
+      <span class="badge badge-accent">🔒 Файлы не покидают ваш браузер</span>
+      <span class="badge">Без лимитов</span>
+      <span class="badge">Без регистрации</span>
+      <span class="badge">Бесплатно</span>
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY NOTICE -->
+<div class="pnote">
+  <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  <p><strong>Ваша приватность защищена</strong> — все файлы обрабатываются локально в вашем браузере. Ни один файл не отправляется на серверы.</p>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- ══════════════ IMAGES ══════════════ -->
+  <div class="asec" id="secImg">
+    <div class="asec-head" onclick="toggle('img')">
+      <div class="asec-left">
+        <span class="asec-icon">🖼️</span>
+        <div>
+          <div class="asec-title">Изображения</div>
+          <div class="asec-sub">JPG · PNG · WebP · GIF · BMP · ICO · TIFF</div>
+        </div>
+        <div class="asec-formats">
+          <span class="fmt">JPG</span><span class="fmt">PNG</span>
+          <span class="fmt">WebP</span><span class="fmt">BMP</span>
+          <span class="fmt">GIF</span><span class="fmt">ICO</span>
+        </div>
+      </div>
+      <span class="asec-arr">▾</span>
+    </div>
+    <div class="asec-body" id="bodyImg">
+
+      <!-- Drop Zone -->
+      <label class="dropzone" id="dzImg">
+        <input type="file" id="inImg" multiple accept="image/*,.heic,.heif" onchange="addFiles('img',this.files)">
+        <span class="dz-icon">🖼️</span>
+        <span class="dz-title">Перетащите или выберите изображения</span>
+        <span class="dz-hint">JPG, PNG, WebP, BMP, GIF, ICO, TIFF и другие</span>
+        <span class="dz-size">Любое количество файлов · Любой размер</span>
+      </label>
+
+      <!-- Settings -->
+      <div class="settings">
+        <div class="sfield">
+          <label>Конвертировать в</label>
+          <select id="imgFmt">
+            <option value="image/jpeg">JPG</option>
+            <option value="image/png" selected>PNG</option>
+            <option value="image/webp">WebP</option>
+            <option value="image/bmp">BMP</option>
+          </select>
+        </div>
+        <div class="sfield">
+          <label>Качество (JPG/WebP): <span class="qual-val" id="qVal">92</span>%</label>
+          <input type="range" id="imgQ" min="10" max="100" value="92" oninput="document.getElementById('qVal').textContent=this.value">
+        </div>
+        <div class="sfield">
+          <label>Максимальная ширина (px)</label>
+          <select id="imgW">
+            <option value="0">Без изменений</option>
+            <option value="3840">4K (3840)</option>
+            <option value="2560">2560</option>
+            <option value="1920">Full HD (1920)</option>
+            <option value="1280">1280</option>
+            <option value="800">800</option>
+          </select>
+        </div>
+        <div class="sfield">
+          <label>Фон для PNG→JPG</label>
+          <select id="imgBg">
+            <option value="#ffffff">Белый</option>
+            <option value="#000000">Чёрный</option>
+            <option value="#f4f4ef">Светлый</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- File list -->
+      <div class="flist" id="listImg"></div>
+
+      <!-- Progress -->
+      <div class="prog-total" id="progImg">
+        <div class="prog-label">
+          <span>Прогресс конвертации</span>
+          <strong id="progImgTxt">0 / 0</strong>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="progImgFill"></div></div>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary" id="sumImg"></div>
+
+      <!-- Actions -->
+      <div class="actrow">
+        <button class="btn-conv" id="btnConvImg" disabled onclick="convertImages()">
+          <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          Конвертировать
+        </button>
+        <button class="btn-dl" id="btnDlImg" disabled onclick="downloadAll('img')">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Скачать все
+        </button>
+        <button class="btn-clr" onclick="clearAll('img')">Очистить</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════ DOCUMENTS ══════════════ -->
+  <div class="asec" id="secDoc">
+    <div class="asec-head" onclick="toggle('doc')">
+      <div class="asec-left">
+        <span class="asec-icon">📄</span>
+        <div>
+          <div class="asec-title">Документы</div>
+          <div class="asec-sub">DOCX · XLSX · CSV · TXT · HTML · PDF</div>
+        </div>
+        <div class="asec-formats">
+          <span class="fmt">DOCX</span><span class="fmt">PDF</span>
+          <span class="fmt">XLSX</span><span class="fmt">CSV</span>
+          <span class="fmt">TXT</span><span class="fmt">HTML</span>
+        </div>
+      </div>
+      <span class="asec-arr">▾</span>
+    </div>
+    <div class="asec-body" id="bodyDoc">
+
+      <label class="dropzone" id="dzDoc">
+        <input type="file" id="inDoc" multiple
+          accept=".docx,.doc,.xlsx,.xls,.csv,.txt,.html,.htm,.rtf"
+          onchange="addFiles('doc',this.files)">
+        <span class="dz-icon">📄</span>
+        <span class="dz-title">Перетащите или выберите документы</span>
+        <span class="dz-hint">DOCX, XLSX, CSV, TXT, HTML, RTF</span>
+        <span class="dz-size">Любое количество файлов</span>
+      </label>
+
+      <div class="settings">
+        <div class="sfield">
+          <label>Конвертировать в</label>
+          <select id="docFmt" onchange="updateDocHint()">
+            <option value="txt">TXT (текст)</option>
+            <option value="html">HTML</option>
+            <option value="pdf">PDF</option>
+            <option value="csv">CSV</option>
+            <option value="xlsx">XLSX (Excel)</option>
+            <option value="json">JSON</option>
+          </select>
+        </div>
+        <div class="sfield">
+          <label>Кодировка текста</label>
+          <select id="docEnc">
+            <option value="utf-8">UTF-8</option>
+            <option value="windows-1251">Windows-1251</option>
+          </select>
+        </div>
+        <div class="sfield">
+          <label>Разделитель CSV</label>
+          <select id="docDel">
+            <option value=";">Точка с запятой (;)</option>
+            <option value=",">Запятая (,)</option>
+            <option value="	">Табуляция</option>
+          </select>
+        </div>
+        <div class="sfield">
+          <label>PDF: шрифт</label>
+          <select id="docPdfFont">
+            <option value="Courier">Courier (моноширинный)</option>
+            <option value="Helvetica" selected>Helvetica</option>
+            <option value="Times">Times</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="docHint" style="margin-top:12px;font-family:var(--fm);font-size:.54rem;letter-spacing:.14em;text-transform:uppercase;color:var(--g5);padding:10px 14px;background:var(--g1);border:1px solid var(--g3)">
+        💡 DOCX→TXT — только текст без форматирования. DOCX→HTML — с базовым форматированием. XLSX→CSV — первый лист таблицы.
+      </div>
+
+      <div class="flist" id="listDoc"></div>
+
+      <div class="prog-total" id="progDoc">
+        <div class="prog-label">
+          <span>Прогресс конвертации</span>
+          <strong id="progDocTxt">0 / 0</strong>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="progDocFill"></div></div>
+      </div>
+
+      <div class="summary" id="sumDoc"></div>
+
+      <div class="actrow">
+        <button class="btn-conv" id="btnConvDoc" disabled onclick="convertDocs()">
+          <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          Конвертировать
+        </button>
+        <button class="btn-dl" id="btnDlDoc" disabled onclick="downloadAll('doc')">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Скачать все
+        </button>
+        <button class="btn-clr" onclick="clearAll('doc')">Очистить</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="how">
+    <h2 class="how-ttl">Как это<br><em>работает</em></h2>
+    <div class="how-grid">
+      <div class="how-card"><div class="how-n">01 —</div><div class="how-title">Загрузите</div><div class="how-txt">Перетащите файлы или нажмите на зону загрузки. Любое количество файлов.</div></div>
+      <div class="how-card"><div class="how-n">02 —</div><div class="how-title">Настройте</div><div class="how-txt">Выберите формат и параметры: качество, размер, кодировку — всё под ваши нужды.</div></div>
+      <div class="how-card"><div class="how-n">03 —</div><div class="how-title">Конвертируйте</div><div class="how-txt">Нажмите кнопку и наблюдайте прогресс в реальном времени. ✓ — успех, ✗ — ошибка.</div></div>
+      <div class="how-card"><div class="how-n">04 —</div><div class="how-title">Скачайте</div><div class="how-txt">Один клик — и все успешно конвертированные файлы скачаются одним ZIP-архивом.</div></div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<!-- LIBRARIES -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+const state = {
+  img: { files: [], results: [] },
+  doc: { files: [], results: [] }
+};
+
+// ═══════════════════════════════════════════════
+//  ACCORDION
+// ═══════════════════════════════════════════════
+function toggle(id) {
+  const head = document.querySelector(`#sec${cap(id)} .asec-head`);
+  const body = document.getElementById(`body${cap(id)}`);
+  head.classList.toggle('open');
+  body.classList.toggle('open');
+}
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1) }
+
+// Open first section by default
+toggle('img');
+
+// ═══════════════════════════════════════════════
+//  DRAG & DROP
+// ═══════════════════════════════════════════════
+['Img','Doc'].forEach(id => {
+  const dz = document.getElementById('dz'+id);
+  if(!dz) return;
+  ['dragover','dragenter'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave','dragend','drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove('drag'); }));
+  dz.addEventListener('drop', ev => {
+    ev.preventDefault();
+    addFiles(id.toLowerCase(), ev.dataTransfer.files);
+  });
+});
+
+// ═══════════════════════════════════════════════
+//  ADD FILES
+// ═══════════════════════════════════════════════
+function addFiles(type, files) {
+  if(!files || !files.length) return;
+  Array.from(files).forEach(f => {
+    if(state[type].files.find(x => x.name===f.name && x.size===f.size)) return;
+    state[type].files.push(f);
+  });
+  renderList(type);
+  document.getElementById(`btnConv${cap(type)}`).disabled = state[type].files.length === 0;
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER FILE LIST
+// ═══════════════════════════════════════════════
+function renderList(type) {
+  const ul = document.getElementById(`list${cap(type)}`);
+  const res = state[type].results;
+  ul.innerHTML = state[type].files.map((f,i) => {
+    const r = res[i];
+    const st = !r ? 'wait'
+      : r === 'proc' ? 'proc'
+      : r === 'err'  ? 'err'
+      : 'ok';
+    const stLabel = {wait:'Ожидание', proc:'Обработка...', err:'Ошибка', ok:'Готово'}[st];
+    const stDot = {wait:'◯', proc:'⟳', err:'✗', ok:'✓'}[st];
+    const pct = (st==='ok') ? 100 : (st==='proc') ? 60 : 0;
+    return `<div class="fitem" id="fi_${type}_${i}">
+      <span class="fi-ico">${fileIcon(f.name)}</span>
+      <div style="min-width:0">
+        <div class="fi-name" title="${esc(f.name)}">${esc(f.name)}</div>
+        <div class="fi-size">${fmtSize(f.size)}</div>
+      </div>
+      <div class="fi-status st-${st}">${stDot} ${stLabel}</div>
+      <div class="fi-pbar"><div class="fi-pfill" style="width:${pct}%"></div></div>
+      ${st==='wait'?`<button class="fi-del" onclick="removeFile('${type}',${i})" title="Удалить">✕</button>`:'<span></span>'}
+    </div>`;
+  }).join('');
+}
+
+function updateItem(type, i, status) {
+  state[type].results[i] = status;
+  const el = document.getElementById(`fi_${type}_${i}`);
+  if(!el) return;
+  const st = status === 'proc' ? 'proc' : status === 'err' ? 'err' : 'ok';
+  const stLabel = {proc:'Обработка...', err:'Ошибка', ok:'Готово'}[st];
+  const stDot   = {proc:'⟳',           err:'✗',      ok:'✓'}[st];
+  const pct     = {proc:60, err:100, ok:100}[st];
+  el.querySelector('.fi-status').className = `fi-status st-${st}`;
+  el.querySelector('.fi-status').textContent = `${stDot} ${stLabel}`;
+  el.querySelector('.fi-pfill').style.width = pct+'%';
+}
+
+function removeFile(type, i) {
+  state[type].files.splice(i,1);
+  state[type].results.splice(i,1);
+  renderList(type);
+  document.getElementById(`btnConv${cap(type)}`).disabled = state[type].files.length === 0;
+}
+
+function clearAll(type) {
+  state[type].files = [];
+  state[type].results = [];
+  renderList(type);
+  document.getElementById(`btnConv${cap(type)}`).disabled = true;
+  document.getElementById(`btnDl${cap(type)}`).disabled = true;
+  document.getElementById(`prog${cap(type)}`).classList.remove('show');
+  document.getElementById(`sum${cap(type)}`).classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════
+//  PROGRESS
+// ═══════════════════════════════════════════════
+function setProgress(type, done, total) {
+  const pg = document.getElementById(`prog${cap(type)}`);
+  pg.classList.add('show');
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById(`prog${cap(type)}Fill`).style.width = pct+'%';
+  document.getElementById(`prog${cap(type)}Txt`).textContent = `${done} / ${total}`;
+}
+
+// ═══════════════════════════════════════════════
+//  IMAGE CONVERSION
+// ═══════════════════════════════════════════════
+async function convertImages() {
+  const files = state.img.files;
+  if(!files.length) return;
+  const fmt   = document.getElementById('imgFmt').value;
+  const q     = parseInt(document.getElementById('imgQ').value)/100;
+  const maxW  = parseInt(document.getElementById('imgW').value);
+  const bg    = document.getElementById('imgBg').value;
+  const ext   = {
+    'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/bmp':'bmp'
+  }[fmt] || 'jpg';
+
+  state.img.results = Array(files.length).fill(null);
+  renderList('img');
+  const btn = document.getElementById('btnConvImg');
+  btn.disabled = true;
+
+  const blobs = [];
+  for(let i=0; i<files.length; i++){
+    updateItem('img', i, 'proc');
+    setProgress('img', i, files.length);
+    try {
+      const blob = await imgToBlob(files[i], fmt, q, maxW, bg);
+      blobs.push({ name: changExt(files[i].name, ext), blob });
+      updateItem('img', i, 'ok');
+    } catch(e) {
+      blobs.push(null);
+      updateItem('img', i, 'err');
+    }
+    await tick();
+  }
+  setProgress('img', files.length, files.length);
+  state.img._blobs = blobs;
+
+  const ok  = blobs.filter(Boolean).length;
+  const err = blobs.length - ok;
+  const sum = document.getElementById('sumImg');
+  sum.classList.add('show');
+  sum.innerHTML = `<span class="sum-ok">✓ Успешно: ${ok}</span>${err?`<span class="sum-err">✗ Ошибки: ${err}</span>`:''}<span class="sum-total">Всего: ${files.length}</span>`;
+  document.getElementById('btnDlImg').disabled = ok===0;
+  btn.disabled = false;
+  toast(ok > 0 ? `✓ Конвертировано: ${ok} из ${files.length}` : '⚠ Не удалось сконвертировать');
+}
+
+function imgToBlob(file, fmt, quality, maxW, bg) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if(maxW && w > maxW){ h = Math.round(h * maxW/w); w = maxW; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if(fmt === 'image/jpeg' || fmt === 'image/bmp'){
+        ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+      }
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(b => b ? res(b) : rej(new Error('toBlob failed')), fmt, quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('load failed')); };
+    img.src = url;
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  DOCUMENT CONVERSION
+// ═══════════════════════════════════════════════
+function updateDocHint() {
+  const fmt = document.getElementById('docFmt').value;
+  const hints = {
+    txt: '📝 Извлекается чистый текст без форматирования. Работает с DOCX, XLSX, HTML, TXT, CSV.',
+    html: '🌐 DOCX → HTML с сохранением заголовков и списков. XLSX → HTML-таблица.',
+    pdf: '📄 Создаётся PDF-документ с текстовым содержимым. Оптимально для DOCX и TXT.',
+    csv: '📊 XLSX/XLS → CSV. Экспортируется первый лист таблицы.',
+    xlsx: '📊 CSV/TXT → XLSX. Данные помещаются в таблицу Excel.',
+    json: '{ } XLSX/CSV → JSON-массив строк таблицы.',
+  };
+  document.getElementById('docHint').textContent = '💡 '+( hints[fmt]||'');
+}
+
+async function convertDocs() {
+  const files = state.doc.files;
+  if(!files.length) return;
+  const fmt = document.getElementById('docFmt').value;
+  const del = document.getElementById('docDel').value;
+  const pdfFont = document.getElementById('docPdfFont').value;
+
+  state.doc.results = Array(files.length).fill(null);
+  renderList('doc');
+  const btn = document.getElementById('btnConvDoc');
+  btn.disabled = true;
+
+  const blobs = [];
+  for(let i=0; i<files.length; i++){
+    updateItem('doc', i, 'proc');
+    setProgress('doc', i, files.length);
+    try {
+      const r = await convertDoc(files[i], fmt, del, pdfFont);
+      blobs.push({ name: changExt(files[i].name, fmt), blob: r });
+      updateItem('doc', i, 'ok');
+    } catch(e) {
+      console.warn(e);
+      blobs.push(null);
+      updateItem('doc', i, 'err');
+    }
+    await tick();
+  }
+  setProgress('doc', files.length, files.length);
+  state.doc._blobs = blobs;
+
+  const ok  = blobs.filter(Boolean).length;
+  const err = blobs.length - ok;
+  const sum = document.getElementById('sumDoc');
+  sum.classList.add('show');
+  sum.innerHTML = `<span class="sum-ok">✓ Успешно: ${ok}</span>${err?`<span class="sum-err">✗ Ошибки: ${err}</span>`:''}<span class="sum-total">Всего: ${files.length}</span>`;
+  document.getElementById('btnDlDoc').disabled = ok===0;
+  btn.disabled = false;
+  toast(ok > 0 ? `✓ Конвертировано: ${ok} из ${files.length}` : '⚠ Не удалось сконвертировать');
+}
+
+async function convertDoc(file, fmt, del, pdfFont) {
+  const name = file.name.toLowerCase();
+  const ab   = await file.arrayBuffer();
+  const isDocx = name.endsWith('.docx')||name.endsWith('.doc');
+  const isXlsx = name.endsWith('.xlsx')||name.endsWith('.xls');
+  const isCsv  = name.endsWith('.csv');
+  const isTxt  = name.endsWith('.txt')||name.endsWith('.rtf');
+  const isHtml = name.endsWith('.html')||name.endsWith('.htm');
+
+  // ── TXT output
+  if(fmt === 'txt') {
+    if(isDocx) {
+      const r = await mammoth.extractRawText({ arrayBuffer: ab });
+      return new Blob([r.value], {type:'text/plain;charset=utf-8'});
+    }
+    if(isXlsx) {
+      const wb = XLSX.read(ab,{type:'array'});
+      let txt = '';
+      wb.SheetNames.forEach(n => { txt += `=== ${n} ===\n` + XLSX.utils.sheet_to_csv(wb.Sheets[n], {FS:'\t'}) + '\n\n'; });
+      return new Blob([txt], {type:'text/plain;charset=utf-8'});
+    }
+    if(isCsv||isTxt||isHtml) {
+      return new Blob([ab], {type:'text/plain;charset=utf-8'});
+    }
+    throw new Error('Unsupported for TXT');
+  }
+
+  // ── HTML output
+  if(fmt === 'html') {
+    if(isDocx) {
+      const r = await mammoth.convertToHtml({ arrayBuffer: ab });
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;max-width:800px;margin:40px auto;line-height:1.6;color:#333}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:6px 10px}</style></head><body>${r.value}</body></html>`;
+      return new Blob([html], {type:'text/html;charset=utf-8'});
+    }
+    if(isXlsx) {
+      const wb = XLSX.read(ab,{type:'array'});
+      const sn = wb.SheetNames[0];
+      const html = XLSX.utils.sheet_to_html(wb.Sheets[sn]);
+      const full = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px 10px;font-family:Arial,sans-serif;font-size:13px}</style></head><body>${html}</body></html>`;
+      return new Blob([full], {type:'text/html;charset=utf-8'});
+    }
+    if(isTxt||isCsv) {
+      const text = new TextDecoder().decode(ab).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+      return new Blob([`<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><pre style="font-family:monospace">${text}</pre></body></html>`], {type:'text/html'});
+    }
+    if(isHtml) return new Blob([ab], {type:'text/html'});
+    throw new Error('Unsupported for HTML');
+  }
+
+  // ── CSV output
+  if(fmt === 'csv') {
+    if(isXlsx) {
+      const wb = XLSX.read(ab,{type:'array'});
+      const csv = XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]], {FS:del});
+      return new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+    }
+    if(isCsv) return new Blob([ab], {type:'text/csv'});
+    if(isDocx||isTxt) {
+      const r = isDocx ? await mammoth.extractRawText({arrayBuffer:ab}) : {value:new TextDecoder().decode(ab)};
+      const rows = r.value.split('\n').map(l => `"${l.replace(/"/g,'""')}"`).join('\n');
+      return new Blob(['\uFEFF'+rows], {type:'text/csv;charset=utf-8'});
+    }
+    throw new Error('Unsupported for CSV');
+  }
+
+  // ── XLSX output
+  if(fmt === 'xlsx') {
+    const wb = XLSX.utils.book_new();
+    let ws;
+    if(isCsv||isTxt) {
+      const text = new TextDecoder().decode(ab);
+      const rows = text.split('\n').map(l=>l.split(del));
+      ws = XLSX.utils.aoa_to_sheet(rows);
+    } else if(isXlsx) {
+      const wbSrc = XLSX.read(ab,{type:'array'});
+      ws = wbSrc.Sheets[wbSrc.SheetNames[0]];
+    } else if(isDocx) {
+      const r = await mammoth.extractRawText({arrayBuffer:ab});
+      const rows = r.value.split('\n').map(l=>[l]);
+      ws = XLSX.utils.aoa_to_sheet(rows);
+    } else throw new Error('Unsupported for XLSX');
+    XLSX.utils.book_append_sheet(wb, ws, 'Лист1');
+    const out = XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    return new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  }
+
+  // ── JSON output
+  if(fmt === 'json') {
+    let data;
+    if(isXlsx) {
+      const wb = XLSX.read(ab,{type:'array'});
+      data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+    } else if(isCsv||isTxt) {
+      const text = new TextDecoder().decode(ab);
+      const lines = text.trim().split('\n');
+      const headers = lines[0].split(del);
+      data = lines.slice(1).map(l => {
+        const vals = l.split(del);
+        const obj = {};
+        headers.forEach((h,i) => { obj[h.trim()] = vals[i]?.trim()||''; });
+        return obj;
+      });
+    } else throw new Error('Unsupported for JSON');
+    return new Blob([JSON.stringify(data, null, 2)],{type:'application/json'});
+  }
+
+  // ── PDF output
+  if(fmt === 'pdf') {
+    let text = '';
+    if(isDocx) {
+      const r = await mammoth.extractRawText({arrayBuffer:ab});
+      text = r.value;
+    } else if(isXlsx) {
+      const wb = XLSX.read(ab,{type:'array'});
+      text = XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]], {FS:'\t'});
+    } else if(isTxt||isCsv||isHtml) {
+      text = new TextDecoder().decode(ab).replace(/<[^>]+>/g,' ');
+    } else throw new Error('Unsupported for PDF');
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({orientation:'p',unit:'mm',format:'a4'});
+    doc.setFont(pdfFont);
+    doc.setFontSize(10);
+    const lines = doc.splitTextToSize(text, 180);
+    let y = 18;
+    lines.forEach(ln => {
+      if(y > 278){ doc.addPage(); y = 18; }
+      doc.text(ln, 15, y);
+      y += 5.5;
+    });
+    return doc.output('blob');
+  }
+
+  throw new Error('Unknown format');
+}
+
+// ═══════════════════════════════════════════════
+//  DOWNLOAD ALL (ZIP)
+// ═══════════════════════════════════════════════
+async function downloadAll(type) {
+  const blobs = state[type]._blobs || [];
+  const valid = blobs.filter(Boolean);
+  if(!valid.length) return;
+
+  const btn = document.getElementById(`btnDl${cap(type)}`);
+  btn.textContent = '⏳ Упаковка ZIP...';
+  btn.disabled = true;
+
+  try {
+    if(valid.length === 1) {
+      // Single file — direct download
+      const b = valid[0];
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b.blob);
+      a.download = b.name;
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+    } else {
+      const zip = new JSZip();
+      valid.forEach(b => zip.file(b.name, b.blob));
+      const content = await zip.generateAsync({type:'blob', compression:'DEFLATE'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(content);
+      a.download = `converted_files_${Date.now()}.zip`;
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 10000);
+    }
+    toast('✓ Загрузка началась');
+  } catch(e) {
+    toast('⚠ Ошибка при создании ZIP');
+  }
+
+  setTimeout(()=>{
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Скачать все`;
+  }, 2000);
+}
+
+// ═══════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════
+function fileIcon(name) {
+  const e = name.split('.').pop().toLowerCase();
+  const m = {jpg:'🖼',jpeg:'🖼',png:'🖼',webp:'🖼',gif:'🎞',bmp:'🖼',ico:'🖼',tiff:'🖼',tif:'🖼',
+             docx:'📝',doc:'📝',xlsx:'📊',xls:'📊',csv:'📊',pdf:'📕',txt:'📄',html:'🌐',htm:'🌐',rtf:'📄',json:'{ }'};
+  return m[e] || '📁';
+}
+function fmtSize(b){ return b<1024?`${b} Б`:b<1048576?`${(b/1024).toFixed(1)} КБ`:`${(b/1048576).toFixed(2)} МБ` }
+function changExt(name, ext){ return name.replace(/\.[^.]+$/, '')+'.'+ext }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+function tick(){ return new Promise(r=>setTimeout(r,0)) }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3200);
+}
+
+// Fallback: ensure jsPDF available as global
+window.addEventListener('load', ()=>{
+  if(!window.jspdf && window.jsPDF) window.jspdf = { jsPDF: window.jsPDF };
+});
+</script>
+</body>
+</html>
