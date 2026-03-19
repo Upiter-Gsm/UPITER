@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Улучшить фото AI — Фотосалон Юпитер</title>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --black:#060606;--white:#f4f4ef;
+  --g0:#0d0d0d;--g1:#161616;--g2:#1f1f1f;--g3:#2b2b2b;--g4:#444;--g5:#666;--g6:#999;
+  --accent:#c9ba9b;--ok:#4caf78;--err:#e07a5f;
+  --fd:'Bebas Neue',sans-serif;--fs:'Cormorant Garamond',serif;--fm:'Space Mono',monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:var(--fs);-webkit-font-smoothing:antialiased;overflow-x:hidden;cursor:none}
+@media(pointer:coarse){body{cursor:auto}}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,label{cursor:none}
+@media(pointer:coarse){button,input,label{cursor:pointer}}
+
+#grain{position:fixed;inset:-100%;width:300%;height:300%;pointer-events:none;z-index:9980;opacity:.028;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain .4s steps(1) infinite}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-4%,-2%)}40%{transform:translate(2%,-4%)}60%{transform:translate(-2%,4%)}80%{transform:translate(4%,2%)}100%{transform:translate(-2%,-4%)}}
+#vig{position:fixed;inset:0;pointer-events:none;z-index:9979;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6) 100%)}
+
+.cur{position:fixed;pointer-events:none;z-index:9999;top:0;left:0}
+#cdot{width:8px;height:8px;background:var(--white);border-radius:50%;transform:translate(-50%,-50%);mix-blend-mode:difference}
+#cring{width:32px;height:32px;border:1px solid rgba(244,244,239,.4);border-radius:50%;transform:translate(-50%,-50%);transition:width .3s var(--ease),height .3s var(--ease)}
+body.hov #cdot{width:5px;height:5px}
+body.hov #cring{width:50px;height:50px;border-color:rgba(244,244,239,.2)}
+@media(pointer:coarse){.cur{display:none}}
+
+.top-bar{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:14px 48px;background:rgba(6,6,6,.95);backdrop-filter:blur(24px);border-bottom:1px solid var(--g3)}
+.tbl{display:flex;align-items:center;gap:11px}
+.tbl img{height:28px;filter:invert(1);opacity:.85}
+.tbl-name{font-family:var(--fd);font-size:1.25rem;letter-spacing:.1em}
+.tb-back{display:inline-flex;align-items:center;gap:7px;font-family:var(--fm);font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--g5);border:1px solid var(--g3);padding:8px 14px;transition:color .3s,border-color .3s}
+.tb-back:hover{color:var(--white);border-color:var(--g5)}
+.tb-back svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+.hero{min-height:40vh;display:flex;flex-direction:column;justify-content:flex-end;padding:100px 48px 44px;position:relative;overflow:hidden;border-bottom:1px solid var(--g3)}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:72px 72px;mask-image:radial-gradient(ellipse 70% 80% at 40% 50%,black,transparent)}
+.orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(110px)}
+.orb-a{width:500px;height:500px;top:-5%;right:-5%;background:radial-gradient(circle,rgba(255,255,255,.04),transparent 70%);animation:orbA 13s ease-in-out infinite alternate}
+.orb-b{width:350px;height:350px;bottom:0;left:-5%;background:radial-gradient(circle,rgba(201,186,155,.03),transparent 70%);animation:orbA 9s ease-in-out infinite alternate-reverse}
+@keyframes orbA{from{transform:translate(0,0)}to{transform:translate(28px,-36px)}}
+.hero-c{position:relative;z-index:1}
+.eyebrow{display:inline-flex;align-items:center;gap:13px;font-family:var(--fm);font-size:.57rem;letter-spacing:.34em;text-transform:uppercase;color:var(--accent);margin-bottom:18px;opacity:0;animation:up .7s var(--ease) .3s forwards}
+.eyebrow::before{content:'';width:28px;height:1px;background:var(--accent)}
+@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.hero-h1{font-family:var(--fd);font-size:clamp(3rem,8vw,7.5rem);line-height:.87;text-transform:uppercase;opacity:0;animation:up .9s var(--ease) .5s forwards}
+.hero-h1 em{font-family:var(--fs);font-style:italic;font-weight:300;font-size:.44em;display:block;color:var(--g5);text-transform:none;letter-spacing:.02em;margin-top:6px}
+.hero-sub{font-family:var(--fs);font-size:clamp(.88rem,1.15vw,1.05rem);font-weight:300;color:var(--g6);max-width:520px;margin-top:16px;line-height:1.8;opacity:0;animation:up .8s var(--ease) .7s forwards}
+
+.main{max-width:1060px;margin:0 auto;padding:44px 48px 80px}
+
+.mode-tabs{display:flex;gap:2px;margin-bottom:0}
+.mtab{display:flex;align-items:center;justify-content:center;gap:9px;padding:14px 20px;background:var(--g1);border:1px solid var(--g2);font-family:var(--fm);font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--g5);transition:background .25s,color .25s,border-color .25s;flex:1}
+.mtab:hover{background:var(--g2);color:var(--white)}
+.mtab.on{background:var(--g2);border-color:var(--accent);color:var(--white)}
+
+.info-strip{padding:11px 16px;background:var(--g1);border:1px solid var(--g2);border-top:none;font-family:var(--fm);font-size:.54rem;letter-spacing:.11em;text-transform:uppercase;color:var(--g5);display:flex;gap:9px;align-items:flex-start;margin-bottom:22px}
+.info-strip svg{flex-shrink:0;margin-top:1px;width:13px;height:13px;stroke:var(--accent);fill:none;stroke-width:1.5}
+
+.dz{border:1px dashed var(--g3);background:var(--g1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:44px 24px;cursor:pointer;transition:border-color .3s,background .3s;position:relative;overflow:hidden;text-align:center}
+.dz:hover,.dz.drag{border-color:var(--accent);background:rgba(201,186,155,.03)}
+.dz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.dz-ico{font-size:2.2rem;opacity:.4}
+.dz:hover .dz-ico{opacity:.7}
+.dz-ttl{font-family:var(--fd);font-size:1.4rem;letter-spacing:.06em;text-transform:uppercase}
+.dz-hint{font-family:var(--fm);font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:var(--g5)}
+
+.lsettings{display:none;margin-top:18px;background:var(--g1);border:1px solid var(--g2);padding:20px}
+.lsettings.show{display:block}
+.ls-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:18px}
+.sf{display:flex;flex-direction:column;gap:6px}
+.sf label{font-family:var(--fm);font-size:.52rem;letter-spacing:.17em;text-transform:uppercase;color:var(--g5);display:flex;justify-content:space-between}
+.sf label span{color:var(--accent)}
+.sf input[type=range]{accent-color:var(--accent);width:100%}
+
+.actrow{display:flex;gap:10px;margin-top:20px}
+.btn-go{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:9px;background:var(--white);color:var(--black);padding:14px 26px;font-family:var(--fm);font-size:.63rem;letter-spacing:.16em;text-transform:uppercase;border:1px solid transparent;transition:background .3s,color .3s,border-color .3s,transform .3s var(--ease)}
+.btn-go:hover:not(:disabled){background:transparent;color:var(--white);border-color:var(--white);transform:translateY(-2px)}
+.btn-go:disabled{opacity:.3;pointer-events:none}
+.btn-go svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+.prog{display:none;margin-top:24px;background:var(--g1);border:1px solid var(--g2);padding:20px 22px}
+.prog.show{display:block}
+.prog-hd{display:flex;justify-content:space-between;font-family:var(--fm);font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--g5);margin-bottom:9px}
+.prog-hd strong{color:var(--white)}
+.prog-track{height:2px;background:var(--g3);overflow:hidden;border-radius:1px}
+.prog-fill{height:100%;background:var(--accent);border-radius:1px;width:0;transition:width .45s var(--ease)}
+.prog-txt{font-family:var(--fs);font-size:.9rem;font-weight:300;color:var(--g6);margin-top:9px}
+.ldots::after{content:'';animation:ld 1.2s steps(4) infinite}
+@keyframes ld{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}100%{content:'...'}}
+
+.msg{display:none;margin-top:14px;padding:12px 16px;font-family:var(--fm);font-size:.56rem;letter-spacing:.12em;text-transform:uppercase}
+.msg.show{display:block}
+.msg-err{background:rgba(224,122,95,.07);border:1px solid rgba(224,122,95,.3);color:var(--err)}
+.msg-ok{background:rgba(76,175,120,.07);border:1px solid rgba(76,175,120,.3);color:var(--ok)}
+
+.result{display:none;margin-top:36px}
+.result.show{display:block}
+.res-lbl{font-family:var(--fm);font-size:.54rem;letter-spacing:.24em;text-transform:uppercase;color:var(--g5);margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.res-lbl::before,.res-lbl::after{content:'';flex:1;height:1px;background:var(--g3)}
+
+.cmp{position:relative;overflow:hidden;border:1px solid var(--g3);cursor:ew-resize;user-select:none;touch-action:none}
+.cmp-before{display:block;width:100%;height:auto;pointer-events:none;vertical-align:middle}
+.cmp-after-wrap{position:absolute;inset:0;overflow:hidden}
+.cmp-after-wrap img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.cmp-line{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.9);transform:translateX(-50%);pointer-events:none;z-index:3;box-shadow:0 0 10px rgba(0,0,0,.6)}
+.cmp-handle{position:absolute;top:50%;width:44px;height:44px;border-radius:50%;background:var(--white);transform:translate(-50%,-50%);z-index:4;pointer-events:none;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,.7)}
+.cmp-handle svg{width:18px;height:18px;fill:var(--black)}
+.cmp-tag{position:absolute;bottom:13px;font-family:var(--fm);font-size:.52rem;letter-spacing:.15em;text-transform:uppercase;padding:5px 10px;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.15);z-index:5;pointer-events:none}
+.cmp-tag.before{left:13px}.cmp-tag.after{right:13px;color:var(--ok);border-color:rgba(76,175,120,.4)}
+.cmp-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:6;pointer-events:none}
+.cmp-hint span{font-family:var(--fm);font-size:.54rem;letter-spacing:.17em;text-transform:uppercase;color:rgba(255,255,255,.5);background:rgba(0,0,0,.55);padding:8px 16px;border:1px solid rgba(255,255,255,.1);animation:fh 1.8s ease 1.8s forwards}
+@keyframes fh{to{opacity:0;visibility:hidden}}
+
+.res-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn-dl{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;color:var(--ok);border:1px solid var(--ok);background:transparent;font-family:var(--fm);font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;transition:background .3s,color .3s,transform .3s var(--ease)}
+.btn-dl:hover{background:var(--ok);color:var(--black);transform:translateY(-2px)}
+.btn-dl svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5}
+.btn-reset{display:inline-flex;align-items:center;gap:7px;padding:12px 18px;color:var(--g5);border:1px solid var(--g3);background:none;font-family:var(--fm);font-size:.58rem;letter-spacing:.13em;text-transform:uppercase;transition:color .3s,border-color .3s}
+.btn-reset:hover{color:var(--err);border-color:var(--err)}
+
+.how{margin-top:54px;padding-top:40px;border-top:1px solid var(--g3)}
+.how-ttl{font-family:var(--fd);font-size:clamp(2rem,3.8vw,3.4rem);text-transform:uppercase;margin-bottom:26px}
+.how-ttl em{font-family:var(--fs);font-style:italic;font-weight:300;font-size:.5em;display:block;color:var(--g5);text-transform:none;letter-spacing:.02em}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:2px}
+.hc{background:var(--g1);padding:22px 18px;border:1px solid var(--g2)}
+.hc-n{font-family:var(--fm);font-size:.5rem;letter-spacing:.3em;color:var(--g4);margin-bottom:10px}
+.hc-t{font-family:var(--fd);font-size:1.1rem;letter-spacing:.05em;text-transform:uppercase;margin-bottom:7px}
+.hc-b{font-family:var(--fs);font-size:.88rem;font-weight:300;color:var(--g5);line-height:1.7}
+
+@media(max-width:860px){
+  .top-bar,.hero{padding-left:20px;padding-right:20px}
+  .hero{padding-top:82px}
+  .main{padding:28px 20px 60px}
+  .mode-tabs{flex-direction:column}
+  .actrow,.res-actions{flex-direction:column}
+  .btn-go,.btn-dl,.btn-reset{width:100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<div id="grain" aria-hidden="true"></div>
+<div id="vig"   aria-hidden="true"></div>
+<div class="cur" id="cdot-wrap"><div id="cdot"></div></div>
+<div class="cur" id="cring-wrap"><div id="cring"></div></div>
+
+<nav class="top-bar">
+  <a href="index.html" class="tbl">
+    <img src="image/logo.png" alt="Юпитер">
+    <span class="tbl-name">Юпитер</span>
+  </a>
+  <a href="index.html" class="tb-back">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    На сайт
+  </a>
+</nav>
+
+<section class="hero">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="orb orb-a" aria-hidden="true"></div>
+  <div class="orb orb-b" aria-hidden="true"></div>
+  <div class="hero-c">
+    <p class="eyebrow">Юпитер · Нейросеть · Бесплатно</p>
+    <h1 class="hero-h1">Улучшить<br><em>фото с помощью ИИ</em>фото AI</h1>
+    <p class="hero-sub">Загрузите фотографию — настройте резкость, контраст, яркость. Или запустите нейросеть для апскейла ×4. Сравните до/после и скачайте.</p>
+  </div>
+</section>
+
+<main class="main">
+
+  <div class="mode-tabs">
+    <button class="mtab on" id="mLocal" onclick="setMode('local')">⚡ Быстрое улучшение</button>
+    <button class="mtab"    id="mAI"    onclick="setMode('ai')">🤖 AI Апскейл × 4</button>
+  </div>
+  <div class="info-strip">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="infoTxt">Мгновенная обработка прямо в браузере: резкость, контраст, яркость, насыщенность. Никаких серверов — 100% приватно.</span>
+  </div>
+
+  <label class="dz" id="dz">
+    <input type="file" id="fileIn" accept="image/jpeg,image/png,image/webp,image/bmp">
+    <span class="dz-ico" id="dzIco">🖼️</span>
+    <span class="dz-ttl" id="dzTtl">Перетащите или выберите фото</span>
+    <span class="dz-hint" id="dzHint">JPG, PNG, WebP — любой размер</span>
+  </label>
+
+  <div class="lsettings show" id="ls">
+    <div class="ls-grid">
+      <div class="sf"><label>Резкость <span id="vSharp">70</span></label><input type="range" id="rSharp" min="0" max="100" value="70" oninput="sv('vSharp',this.value)"></div>
+      <div class="sf"><label>Яркость <span id="vBright">0</span></label><input type="range" id="rBright" min="-60" max="60" value="0" oninput="sv('vBright',this.value)"></div>
+      <div class="sf"><label>Контраст <span id="vContrast">0</span></label><input type="range" id="rContrast" min="-60" max="60" value="0" oninput="sv('vContrast',this.value)"></div>
+      <div class="sf"><label>Насыщенность <span id="vSat">0</span></label><input type="range" id="rSat" min="-80" max="80" value="0" oninput="sv('vSat',this.value)"></div>
+      <div class="sf"><label>Шумоподавление <span id="vNoise">20</span></label><input type="range" id="rNoise" min="0" max="100" value="20" oninput="sv('vNoise',this.value)"></div>
+      <div class="sf"><label>Тени <span id="vShadow">0</span></label><input type="range" id="rShadow" min="-50" max="50" value="0" oninput="sv('vShadow',this.value)"></div>
+    </div>
+  </div>
+
+  <div class="actrow">
+    <button class="btn-go" id="btnGo" disabled onclick="run()">
+      <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      <span id="btnTxt">Применить улучшения</span>
+    </button>
+  </div>
+
+  <div class="prog" id="prog">
+    <div class="prog-hd"><span>Обработка</span><strong id="pPct">0%</strong></div>
+    <div class="prog-track"><div class="prog-fill" id="pFill"></div></div>
+    <div class="prog-txt" id="pTxt"></div>
+  </div>
+
+  <div class="msg msg-err" id="msgErr"></div>
+  <div class="msg msg-ok"  id="msgOk"></div>
+
+  <div class="result" id="result">
+    <p class="res-lbl">Тяните разделитель для сравнения До / После</p>
+    <div class="cmp" id="cmp">
+      <img class="cmp-before" id="imgBefore" src="" alt="До">
+      <div class="cmp-after-wrap" id="cmpAW"><img id="imgAfter" src="" alt="После"></div>
+      <div class="cmp-line"   id="cLine"></div>
+      <div class="cmp-handle" id="cHandle"><svg viewBox="0 0 24 24"><path d="M8 5l-5 7 5 7M16 5l5 7-5 7"/></svg></div>
+      <span class="cmp-tag before">До</span>
+      <span class="cmp-tag after">После ✓</span>
+      <div class="cmp-hint"><span>← Тяните →</span></div>
+    </div>
+    <div class="res-actions">
+      <button class="btn-dl" onclick="dlResult()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Скачать улучшенное фото
+      </button>
+      <button class="btn-reset" onclick="resetAll()">Загрузить другое</button>
+    </div>
+  </div>
+
+  <div class="how">
+    <h2 class="how-ttl">Как это<br><em>работает</em></h2>
+    <div class="how-grid">
+      <div class="hc"><div class="hc-n">01 —</div><div class="hc-t">Выберите режим</div><div class="hc-b">Быстрое — мгновенно в браузере. AI Апскейл — нейросеть ×4 через сервер.</div></div>
+      <div class="hc"><div class="hc-n">02 —</div><div class="hc-t">Загрузите фото</div><div class="hc-b">Перетащите или нажмите — JPG, PNG, WebP любого размера.</div></div>
+      <div class="hc"><div class="hc-n">03 —</div><div class="hc-t">Настройте</div><div class="hc-b">Ползунки резкости, яркости, контраста. В AI режиме ждите ~30–60 сек.</div></div>
+      <div class="hc"><div class="hc-n">04 —</div><div class="hc-t">Скачайте</div><div class="hc-b">Ползунок сравнения До/После. Нравится — одна кнопка для скачивания.</div></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── CONFIG ──────────────────────────────
+const HF_TOKEN  = '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';
+const HF_MODELS = [
+  'caidas/swin2SR-realworld-sr-x4-64-bsrgan-psnr',
+  'caidas/swin2SR-classical-sr-x2-64'
+];
+const MAX_AI = 800; // max px side before sending to HF
+
+// ── STATE ───────────────────────────────
+let mode      = 'local';
+let origFile  = null;
+let origURL   = null;
+let resBlob   = null;
+let resURL    = null;
+let sliderPct = 50;
+let dragging  = false;
+
+// ── CURSOR ──────────────────────────────
+if (window.matchMedia('(pointer:fine)').matches) {
+  const cd = document.getElementById('cdot-wrap');
+  const cr = document.getElementById('cring-wrap');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove', e=>{mx=e.clientX;my=e.clientY;cd.style.transform=`translate(${mx}px,${my}px)`});
+  (function raf(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;cr.style.transform=`translate(${rx}px,${ry}px)`;requestAnimationFrame(raf)})();
+  document.addEventListener('mouseover',e=>{if(e.target.closest('a,button,label,.cmp'))document.body.classList.add('hov')});
+  document.addEventListener('mouseout', e=>{if(e.target.closest('a,button,label,.cmp'))document.body.classList.remove('hov')});
+}
+
+// ── UTILS ───────────────────────────────
+function sv(id,v){document.getElementById(id).textContent=v}
+function clamp(v){return v<0?0:v>255?255:v}
+function lerp(a,b,t){return a+(b-a)*t}
+function fmtSize(b){return b<1048576?`${(b/1024).toFixed(0)} КБ`:`${(b/1048576).toFixed(1)} МБ`}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+// ── MODE ────────────────────────────────
+const infos = {
+  local: 'Мгновенная обработка прямо в браузере: резкость, контраст, яркость, насыщенность. Никаких серверов — 100% приватно.',
+  ai:    'Нейросеть Swin2SR (Microsoft) увеличит фото в 4×, восстановит детали. Ожидание ~30–60 сек. Файлы не хранятся.'
+};
+function setMode(m){
+  mode=m;
+  document.getElementById('mLocal').classList.toggle('on',m==='local');
+  document.getElementById('mAI').classList.toggle('on',m==='ai');
+  document.getElementById('infoTxt').textContent=infos[m];
+  document.getElementById('ls').classList.toggle('show',m==='local');
+  document.getElementById('btnTxt').textContent=m==='ai'?'Улучшить AI (×4)':'Применить улучшения';
+}
+
+// ── FILE LOADING ────────────────────────
+document.getElementById('fileIn').addEventListener('change',e=>{if(e.target.files[0])loadFile(e.target.files[0])});
+
+const dzEl=document.getElementById('dz');
+['dragover','dragenter'].forEach(ev=>dzEl.addEventListener(ev,e=>{e.preventDefault();dzEl.classList.add('drag')}));
+['dragleave','dragend'].forEach(ev=>dzEl.addEventListener(ev,()=>dzEl.classList.remove('drag')));
+dzEl.addEventListener('drop',e=>{e.preventDefault();dzEl.classList.remove('drag');if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0])});
+
+function loadFile(f){
+  if(!f.type.startsWith('image/')){showErr('Выберите файл изображения (JPG, PNG, WebP)');return}
+  origFile=f;
+  if(origURL)URL.revokeObjectURL(origURL);
+  origURL=URL.createObjectURL(f);
+  document.getElementById('dzIco').textContent='✅';
+  document.getElementById('dzTtl').textContent=f.name;
+  document.getElementById('dzHint').textContent=fmtSize(f.size)+' — нажмите чтобы изменить';
+  document.getElementById('btnGo').disabled=false;
+  hideMsg();hideResult();hideProgress();
+}
+
+// ── MAIN ENTRY ──────────────────────────
+async function run(){
+  if(!origFile)return;
+  document.getElementById('btnGo').disabled=true;
+  hideMsg();hideResult();hideProgress();
+  try{
+    if(mode==='ai') await runAI();
+    else            await runLocal();
+  }catch(e){
+    console.error(e);
+    showErr('⚠ '+e.message);
+  }finally{
+    document.getElementById('btnGo').disabled=false;
+    hideProgress();
+  }
+}
+
+// ── LOCAL MODE ──────────────────────────
+async function runLocal(){
+  setProgress('Загрузка изображения',10,'Чтение файла');
+  const img = await waitImg(origURL);
+  const W=img.naturalWidth, H=img.naturalHeight;
+  if(!W||!H) throw new Error('Не удалось определить размер изображения');
+
+  setProgress('Применение фильтров',35,'CSS обработка');
+  const canvas=document.createElement('canvas');
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  if(!ctx) throw new Error('Canvas недоступен в этом браузере');
+
+  const sharp    = +document.getElementById('rSharp').value/100;
+  const bright   = +document.getElementById('rBright').value;
+  const contrast = +document.getElementById('rContrast').value;
+  const sat      = +document.getElementById('rSat').value;
+  const noise    = +document.getElementById('rNoise').value/100;
+  const shadow   = +document.getElementById('rShadow').value;
+
+  // CSS filters — GPU, always reliable
+  const bv  = 1 + bright/100;
+  const cv  = 1 + contrast/100;
+  const sv2 = Math.max(0.01, 1 + sat/60);
+  ctx.filter=`brightness(${bv.toFixed(3)}) contrast(${cv.toFixed(3)}) saturate(${sv2.toFixed(3)})`;
+  ctx.drawImage(img,0,0,W,H);
+  ctx.filter='none';
+
+  // Shadow/highlight lift
+  if(Math.abs(shadow)>2){
+    setProgress('Коррекция теней',50,'Тени/свет');
+    const id=ctx.getImageData(0,0,W,H);
+    const d=id.data, sf=shadow/100;
+    for(let i=0;i<d.length;i+=4){
+      const lum=(d[i]*.299+d[i+1]*.587+d[i+2]*.114)/255;
+      const boost=sf>0?(1-lum)*sf:lum*(-sf);
+      d[i]  =clamp(d[i]  +boost*255);
+      d[i+1]=clamp(d[i+1]+boost*255);
+      d[i+2]=clamp(d[i+2]+boost*255);
+    }
+    ctx.putImageData(id,0,0);
+  }
+
+  // Noise reduction
+  if(noise>0.08){
+    setProgress('Шумоподавление',62,'Сглаживание');
+    const id=ctx.getImageData(0,0,W,H);
+    const bl=boxBlur(id.data,W,H,Math.max(1,Math.round(noise*2.5)));
+    const out=new Uint8ClampedArray(id.data.length);
+    for(let i=0;i<id.data.length;i+=4){
+      out[i]  =lerp(id.data[i],  bl[i],  noise)|0;
+      out[i+1]=lerp(id.data[i+1],bl[i+1],noise)|0;
+      out[i+2]=lerp(id.data[i+2],bl[i+2],noise)|0;
+      out[i+3]=id.data[i+3];
+    }
+    ctx.putImageData(new ImageData(out,W,H),0,0);
+  }
+
+  // Sharpness (unsharp mask)
+  if(sharp>0.04){
+    setProgress('Применение резкости',78,'Unsharp mask');
+    const id=ctx.getImageData(0,0,W,H);
+    const bl=boxBlur(id.data,W,H,1);
+    const out=new Uint8ClampedArray(id.data.length);
+    const a=sharp*1.9;
+    for(let i=0;i<id.data.length;i+=4){
+      out[i]  =clamp(id.data[i]  +a*(id.data[i]  -bl[i])  );
+      out[i+1]=clamp(id.data[i+1]+a*(id.data[i+1]-bl[i+1]));
+      out[i+2]=clamp(id.data[i+2]+a*(id.data[i+2]-bl[i+2]));
+      out[i+3]=id.data[i+3];
+    }
+    ctx.putImageData(new ImageData(out,W,H),0,0);
+  }
+
+  setProgress('Сохранение',94,'Финализация');
+  const blob=await c2b(canvas,'image/jpeg',0.95);
+  showResult(blob);
+  showOk('✓ Улучшение применено! Сравните до/после и скачайте.');
+}
+
+// Box blur — returns Uint8ClampedArray (NOT ImageData)
+function boxBlur(data,W,H,r){
+  r=Math.min(r,6);
+  const tmp=new Float32Array(data.length);
+  const out=new Uint8ClampedArray(data.length);
+  // horizontal
+  for(let y=0;y<H;y++){
+    for(let c=0;c<3;c++){
+      let acc=0,cnt=2*r+1;
+      for(let kx=-r;kx<=r;kx++) acc+=data[(y*W+Math.min(Math.max(kx,0),W-1))*4+c];
+      tmp[(y*W)*4+c]=acc/cnt;
+      for(let x=1;x<W;x++){
+        acc+=data[(y*W+Math.min(x+r,W-1))*4+c]-data[(y*W+Math.max(x-r-1,0))*4+c];
+        tmp[(y*W+x)*4+c]=acc/cnt;
+      }
+    }
+    for(let x=0;x<W;x++) tmp[(y*W+x)*4+3]=data[(y*W+x)*4+3];
+  }
+  // vertical
+  for(let x=0;x<W;x++){
+    for(let c=0;c<3;c++){
+      let acc=0,cnt=2*r+1;
+      for(let ky=-r;ky<=r;ky++) acc+=tmp[(Math.min(Math.max(ky,0),H-1)*W+x)*4+c];
+      out[x*4+c]=acc/cnt;
+      for(let y=1;y<H;y++){
+        acc+=tmp[(Math.min(y+r,H-1)*W+x)*4+c]-tmp[(Math.max(y-r-1,0)*W+x)*4+c];
+        out[(y*W+x)*4+c]=acc/cnt;
+      }
+    }
+    for(let y=0;y<H;y++) out[(y*W+x)*4+3]=data[(y*W+x)*4+3];
+  }
+  return out;
+}
+
+// ── AI MODE ─────────────────────────────
+async function runAI(){
+  setProgress('Подготовка изображения',8,'Масштабирование');
+  const blob=await prepForAI(origFile);
+
+  setProgress('Отправка на сервер',18,'Hugging Face API');
+  let lastErr=null;
+  for(const model of HF_MODELS){
+    try{
+      setProgress(`Нейросеть обрабатывает`,28,model.split('/')[1]);
+      const r=await callHF(model,blob);
+      if(r&&r.size>500){
+        showResult(r);
+        showOk('✓ AI обработка завершена! Фото улучшено нейросетью.');
+        return;
+      }
+      throw new Error('Получен пустой ответ');
+    }catch(e){
+      lastErr=e;
+      console.warn('Model failed:',model,e.message);
+      setProgress('Пробуем другую модель',22,'Переключение');
+      await sleep(2000);
+    }
+  }
+  throw new Error((lastErr?.message||'Недоступно')+'. Попробуйте режим «Быстрое улучшение».');
+}
+
+async function prepForAI(file){
+  const img=await waitImg(URL.createObjectURL(file));
+  const W=img.naturalWidth,H=img.naturalHeight;
+  if(W<=MAX_AI&&H<=MAX_AI) return new Blob([await file.arrayBuffer()],{type:file.type});
+  const sc=MAX_AI/Math.max(W,H);
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.round(W*sc); canvas.height=Math.round(H*sc);
+  canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+  return c2b(canvas,'image/jpeg',0.92);
+}
+
+async function callHF(model,blob){
+  const buf=await blob.arrayBuffer();
+  const ctrl=new AbortController();
+  const t=setTimeout(()=>ctrl.abort(),95000);
+  let resp;
+  try{
+    resp=await fetch(`https://api-inference.huggingface.co/models/${model}`,{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+HF_TOKEN,'Content-Type':blob.type||'image/jpeg'},
+      body:buf,
+      signal:ctrl.signal
+    });
+  }finally{clearTimeout(t)}
+
+  if(resp.status===503){
+    setProgress('Нейросеть запускается',20,'Ожидание (~20 сек)');
+    await sleep(20000);
+    return callHF(model,blob);
+  }
+  if(!resp.ok){
+    let msg='Код '+resp.status;
+    try{const j=await resp.json();msg=j.error||j.message||msg}catch{}
+    throw new Error(msg);
+  }
+  const ct=resp.headers.get('content-type')||'';
+  if(!ct.startsWith('image')){
+    const txt=await resp.text().catch(()=>'');
+    throw new Error('Сервер вернул не изображение: '+txt.slice(0,80));
+  }
+  return resp.blob();
+}
+
+// ── COMPARE SLIDER ───────────────────────
+function applySlider(){
+  const p=sliderPct+'%';
+  document.getElementById('cmpAW').style.width=p;
+  document.getElementById('cLine').style.left=p;
+  document.getElementById('cHandle').style.left=p;
+}
+function setSlider(clientX){
+  const r=document.getElementById('cmp').getBoundingClientRect();
+  sliderPct=Math.min(100,Math.max(0,(clientX-r.left)/r.width*100));
+  applySlider();
+}
+const cmpEl2=document.getElementById('cmp');
+cmpEl2.addEventListener('mousedown', e=>{dragging=true;setSlider(e.clientX)});
+cmpEl2.addEventListener('touchstart',e=>{dragging=true;setSlider(e.touches[0].clientX)},{passive:true});
+window.addEventListener('mousemove', e=>{if(dragging)setSlider(e.clientX)});
+window.addEventListener('touchmove', e=>{if(dragging)setSlider(e.touches[0].clientX)},{passive:true});
+window.addEventListener('mouseup',  ()=>dragging=false);
+window.addEventListener('touchend', ()=>dragging=false);
+
+// ── SHOW/HIDE ────────────────────────────
+function showResult(blob){
+  if(resURL)URL.revokeObjectURL(resURL);
+  resBlob=blob; resURL=URL.createObjectURL(blob);
+  document.getElementById('imgBefore').src=origURL;
+  document.getElementById('imgAfter').src=resURL;
+  sliderPct=50; applySlider();
+  document.getElementById('result').classList.add('show');
+  setTimeout(()=>document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'}),120);
+}
+function hideResult()  {document.getElementById('result').classList.remove('show')}
+function hideProgress(){document.getElementById('prog').classList.remove('show')}
+function setProgress(label,pct,sub){
+  document.getElementById('prog').classList.add('show');
+  document.getElementById('pFill').style.width=pct+'%';
+  document.getElementById('pPct').textContent=pct+'%';
+  document.getElementById('pTxt').innerHTML=`<span class="ldots">${label}</span>${sub?' — '+sub:''}`;
+}
+function showErr(m){const e=document.getElementById('msgErr');e.textContent=m;e.classList.add('show');document.getElementById('msgOk').classList.remove('show')}
+function showOk(m) {const e=document.getElementById('msgOk'); e.textContent=m;e.classList.add('show');document.getElementById('msgErr').classList.remove('show')}
+function hideMsg() {document.getElementById('msgErr').classList.remove('show');document.getElementById('msgOk').classList.remove('show')}
+
+// ── DOWNLOAD ─────────────────────────────
+function dlResult(){
+  if(!resURL)return;
+  const ext=(resBlob?.type||'').includes('png')?'png':'jpg';
+  const name=(origFile?.name||'photo').replace(/\.[^.]+$/,'')+'_enhanced.'+ext;
+  const a=document.createElement('a');
+  a.href=resURL;a.download=name;a.click();
+}
+
+// ── RESET ────────────────────────────────
+function resetAll(){
+  origFile=null;
+  if(origURL){URL.revokeObjectURL(origURL);origURL=null}
+  if(resURL) {URL.revokeObjectURL(resURL); resURL=null}
+  resBlob=null;
+  document.getElementById('fileIn').value='';
+  document.getElementById('dzIco').textContent='🖼️';
+  document.getElementById('dzTtl').textContent='Перетащите или выберите фото';
+  document.getElementById('dzHint').textContent='JPG, PNG, WebP — любой размер';
+  document.getElementById('btnGo').disabled=true;
+  hideMsg();hideResult();hideProgress();
+}
+
+// ── IMAGE HELPERS ─────────────────────────
+function waitImg(url){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    img.onload=()=>img.naturalWidth>0?res(img):rej(new Error('Изображение имеет нулевой размер'));
+    img.onerror=()=>rej(new Error('Не удалось загрузить изображение'));
+    img.src=url;
+  });
+}
+function c2b(canvas,type,quality){
+  return new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error('Ошибка сохранения canvas')),type,quality));
+}
+</script>
+</body>
+</html>
