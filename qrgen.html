@@ -508,7 +508,7 @@ input:focus,select:focus,textarea:focus{outline:none}
             <span class="qe-icon">▣</span>
             <span class="qe-txt">Заполните поля слева</span>
           </div>
-          <canvas id="qrCanvas"></canvas>
+          <div id="qrCanvas"></div>
         </div>
         <div class="pc-meta">
           <div class="pm"><div class="pm-l">Тип</div><div class="pm-v" id="mType">—</div></div>
@@ -570,7 +570,7 @@ input:focus,select:focus,textarea:focus{outline:none}
 <div id="toast" aria-live="polite"></div>
 
 <!-- QR LIBRARY (soldair/node-qrcode) -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
 
 <script>
 /* ════════════════════════════════════════════════
@@ -754,6 +754,16 @@ let logoDataUrl = null;
 let genTimer   = null;
 let lastData   = '';
 
+// Добавляем сюда:
+const qrCode = new QRCodeStyling({
+  width: 300,
+  height: 300,
+  type: "canvas",
+  dotsOptions: { color: "#000", type: "square" },
+  backgroundOptions: { color: "#fff" },
+  imageOptions: { crossOrigin: "anonymous", margin: 5 }
+});
+
 /* ════════════════════════════════════════════════
    INIT
 ════════════════════════════════════════════════ */
@@ -826,11 +836,6 @@ function scheduleGen() {
 }
 
 async function generateQR() {
-  if(typeof QRCode === 'undefined') {
-    showEmpty('Библиотека загружается...');
-    setTimeout(generateQR, 600);
-    return;
-  }
   const data = getData();
   if(!data) { showEmpty(); return; }
   lastData = data;
@@ -841,37 +846,32 @@ async function generateQR() {
   const ec     = document.getElementById('errLvl').value;
   const margin = parseInt(document.getElementById('qrMargin').value);
 
-  const canvas = document.getElementById('qrCanvas');
+  const container = document.getElementById('qrCanvas');
+  container.innerHTML = ""; // Очищаем старый QR
 
-  try {
-    await QRCode.toCanvas(canvas, data, {
-      width: size,
-      margin: margin,
-      color: { dark, light },
-      errorCorrectionLevel: ec,
-    });
+  // Обновляем параметры объекта
+  qrCode.update({
+    width: size,
+    height: size,
+    data: data,
+    margin: margin * 10, // В этой библиотеке margin считается иначе
+    qrOptions: { errorCorrectionLevel: ec },
+    dotsOptions: { color: dark, type: "square" }, // Можно менять type на "rounded", "dots" и т.д.
+    backgroundOptions: { color: light },
+    image: logoDataUrl
+  });
 
-    if(logoDataUrl) await drawLogo(canvas, logoDataUrl, light);
+  // Рисуем QR в контейнере
+  qrCode.append(container);
 
-    // Show canvas
-    document.getElementById('qrEmpty').style.display  = 'none';
-    canvas.style.display = 'block';
-
-    // Meta
-    document.getElementById('mChars').textContent = data.length + ' симв.';
-    document.getElementById('mSize').textContent  = size + 'px';
-
-    // Data preview
-    const pcData = document.getElementById('pcData');
-    pcData.style.display = 'block';
-    document.getElementById('pdText').textContent = data;
-
-    // Enable buttons
-    setDlEnabled(true);
-  } catch(e) {
-    console.warn('QR generate error:', e);
-    showEmpty('Ошибка: данные слишком большие');
-  }
+  // Обновляем интерфейс
+  document.getElementById('qrEmpty').style.display  = 'none';
+  container.style.display = 'block';
+  document.getElementById('mChars').textContent = data.length + ' симв.';
+  document.getElementById('mSize').textContent  = size + 'px';
+  document.getElementById('pcData').style.display = 'block';
+  document.getElementById('pdText').textContent = data;
+  setDlEnabled(true);
 }
 
 function showEmpty(msg) {
@@ -967,26 +967,9 @@ function removeLogo(e) {
 ════════════════════════════════════════════════ */
 async function dlPNG(size) {
   if(!lastData) return;
-  const dark   = document.getElementById('colorDark').value;
-  const light  = document.getElementById('colorLight').value;
-  const ec     = document.getElementById('errLvl').value;
-  const margin = parseInt(document.getElementById('qrMargin').value);
-
-  const tmp = document.createElement('canvas');
-  try {
-    await QRCode.toCanvas(tmp, lastData, {
-      width: size, margin, color: { dark, light }, errorCorrectionLevel: ec
-    });
-    if(logoDataUrl) await drawLogo(tmp, logoDataUrl, light);
-
-    const a   = document.createElement('a');
-    a.href    = tmp.toDataURL('image/png');
-    a.download= `qr-${curType}-${size}px.png`;
-    a.click();
-    toast(`✓ PNG ${size}×${size} скачан`);
-  } catch(e) {
-    toast('⚠ Ошибка при создании PNG');
-  }
+  // Если нужно скачать в другом размере, обновляем и качаем
+  qrCode.download({ name: `qr-${curType}`, extension: "png" });
+  toast(`✓ PNG скачан`);
 }
 
 /* ════════════════════════════════════════════════
@@ -994,23 +977,8 @@ async function dlPNG(size) {
 ════════════════════════════════════════════════ */
 function dlSVG() {
   if(!lastData) return;
-  const dark   = document.getElementById('colorDark').value;
-  const light  = document.getElementById('colorLight').value;
-  const ec     = document.getElementById('errLvl').value;
-  const margin = parseInt(document.getElementById('qrMargin').value);
-
-  QRCode.toString(lastData, {
-    type: 'svg', margin, color: { dark, light }, errorCorrectionLevel: ec
-  }).then(svg => {
-    const blob = new Blob([svg], {type:'image/svg+xml;charset=utf-8'});
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = `qr-${curType}.svg`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 6000);
-    toast('✓ SVG скачан');
-  }).catch(() => toast('⚠ Ошибка SVG'));
+  qrCode.download({ name: `qr-${curType}`, extension: "svg" });
+  toast('✓ SVG скачан');
 }
 
 /* ════════════════════════════════════════════════
