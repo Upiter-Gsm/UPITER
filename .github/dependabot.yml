@@ -1,0 +1,14 @@
+version: 2
+updates:
+  # 1. Проверка обновлений для GitHub Actions (само движение внутри гитхаба)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # 2. Проверка библиотек сайта (например, если используете npm/Node.js)
+  # Если у вас просто чистый HTML без пакетов, этот блок можно убрать
+  - package-ecosystem: "npm" 
+    directory: "/"
+    schedule:
+      interval: "daily"
