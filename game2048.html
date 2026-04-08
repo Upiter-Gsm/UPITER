@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no"/>
+<title>2048 — Фотосалон Юпитер</title>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<meta name="description" content="Игра 2048 от Фотосалона Юпитер. Складывай плитки, получай 2048. Управление: стрелки, WASD или свайп."/>
+<meta name="theme-color" content="#060606"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════ TOKENS ═══════════════ */
+:root{
+  --black:#060606; --white:#f4f4ef;
+  --g0:#0d0d0d; --g1:#161616; --g2:#1f1f1f; --g3:#2b2b2b; --g4:#444; --g5:#666; --g6:#999;
+  --accent:#c9ba9b;
+  --fd:'Bebas Neue',sans-serif;
+  --fs:'Cormorant Garamond',Georgia,serif;
+  --fm:'Space Mono',monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --ease2:cubic-bezier(.65,0,.35,1);
+
+  /* Tile colours — dark theme */
+  --t2:    #1a1a1a; --t2c:    #888;
+  --t4:    #1e1c14; --t4c:    #a09060;
+  --t8:    #2d1f0a; --t8c:    #c98a3a;
+  --t16:   #3a1505; --t16c:   #e06030;
+  --t32:   #3d0e0e; --t32c:   #e04040;
+  --t64:   #4a0808; --t64c:   #f07070;
+  --t128:  #1a2a3a; --t128c:  #5ab0e0;
+  --t256:  #0e1f3a; --t256c:  #4090d0;
+  --t512:  #0a1a30; --t512c:  #3080c0;
+  --t1024: #0d2240; --t1024c: #60a0e0;
+  --t2048: #1a0a2a; --t2048c: #c9ba9b;
+  --thi:   #2a1a0a; --thic:   #ffd700;
+}
+
+/* ═══════════════ RESET ═══════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:clamp(14px,1.05vw,16px);touch-action:manipulation}
+body{
+  background:var(--black);color:var(--white);
+  font-family:var(--fs);-webkit-font-smoothing:antialiased;
+  overflow-x:hidden;user-select:none;-webkit-user-select:none;
+  min-height:100svh;
+}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+::selection{background:var(--white);color:var(--black)}
+
+/* ═══════════════ GRAIN & VIG ═══════════════ */
+#grain{position:fixed;inset:-100%;width:300%;height:300%;pointer-events:none;z-index:9980;opacity:.028;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain .4s steps(1) infinite}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-4%,-2%)}40%{transform:translate(2%,-4%)}60%{transform:translate(-2%,4%)}80%{transform:translate(4%,2%)}100%{transform:translate(-2%,-4%)}}
+#vig{position:fixed;inset:0;pointer-events:none;z-index:9979;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.55) 100%)}
+
+/* ═══════════════ TOP NAV ═══════════════ */
+.top-bar{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 40px;
+  background:rgba(6,6,6,.96);backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--g3);
+}
+.tbl{display:flex;align-items:center;gap:10px}
+.tbl img{height:26px;filter:invert(1);opacity:.8}
+.tbl-name{font-family:var(--fd);font-size:1.2rem;letter-spacing:.1em}
+.tb-back{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--fm);font-size:.54rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--g5);border:1px solid var(--g3);padding:7px 13px;
+  transition:color .3s,border-color .3s;
+}
+.tb-back:hover{color:var(--white);border-color:var(--g5)}
+.tb-back svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+/* ═══════════════ PAGE LAYOUT ═══════════════ */
+.page{
+  max-width:900px;margin:0 auto;
+  padding:72px 24px 60px;
+  display:flex;flex-direction:column;align-items:center;
+  min-height:100svh;
+}
+
+/* ═══════════════ HEADER ROW ═══════════════ */
+.game-header{
+  width:100%;display:flex;align-items:flex-end;justify-content:space-between;
+  margin-bottom:16px;flex-wrap:wrap;gap:12px;
+}
+.gh-left{}
+.gh-eyebrow{
+  font-family:var(--fm);font-size:.52rem;letter-spacing:.32em;text-transform:uppercase;
+  color:var(--accent);display:flex;align-items:center;gap:10px;margin-bottom:6px;
+}
+.gh-eyebrow::before{content:'';width:22px;height:1px;background:var(--accent)}
+.gh-title{font-family:var(--fd);font-size:clamp(3.5rem,10vw,7rem);line-height:.85;letter-spacing:-.01em;text-transform:uppercase}
+.gh-title em{font-family:var(--fs);font-style:italic;font-weight:300;font-size:.35em;display:block;color:var(--g5);text-transform:none;letter-spacing:.03em;margin-top:4px}
+
+/* Score boxes */
+.scores{display:flex;gap:6px;align-items:center}
+.score-box{
+  min-width:80px;text-align:center;
+  background:var(--g1);border:1px solid var(--g3);
+  padding:8px 14px;position:relative;overflow:hidden;
+}
+.sb-lbl{font-family:var(--fm);font-size:.46rem;letter-spacing:.22em;text-transform:uppercase;color:var(--g5);margin-bottom:4px}
+.sb-val{font-family:var(--fd);font-size:1.55rem;letter-spacing:.04em;line-height:1;transition:color .3s}
+#scoreBox .sb-val{color:var(--white)}
+#bestBox  .sb-val{color:var(--accent)}
+.score-pop{
+  position:absolute;top:4px;right:8px;
+  font-family:var(--fd);font-size:.9rem;color:var(--ok);
+  opacity:0;transform:translateY(0);pointer-events:none;
+}
+.score-pop.fire{animation:scorePop .7s var(--ease) forwards}
+@keyframes scorePop{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-22px)}}
+@keyframes bestShine{0%,100%{color:var(--accent)}50%{color:#ffd700}}
+
+/* Buttons */
+.btn-row{display:flex;gap:6px;margin-top:10px}
+.btn-game{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--fm);font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;
+  padding:9px 16px;border:1px solid var(--g3);color:var(--g5);
+  transition:color .3s,border-color .3s,background .2s;
+}
+.btn-game:hover{color:var(--white);border-color:var(--g5)}
+.btn-game.primary{background:var(--white);color:var(--black);border-color:var(--white)}
+.btn-game.primary:hover{background:transparent;color:var(--white)}
+.btn-game svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+/* ═══════════════ BOARD ═══════════════ */
+.board-wrap{
+  width:100%;max-width:520px;
+  position:relative;
+}
+
+.grid-bg{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:var(--gap,10px);
+  padding:var(--gap,10px);
+  background:var(--g2);
+  border:1px solid var(--g3);
+  border-radius:2px;
+  aspect-ratio:1;
+}
+.grid-cell{
+  background:var(--g3);
+  border-radius:1px;
+  opacity:.4;
+}
+
+.tiles-layer{
+  position:absolute;
+  inset:var(--gap,10px);
+  pointer-events:none;
+}
+
+/* Each tile */
+.tile{
+  position:absolute;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:1px;
+  font-family:var(--fd);
+  font-weight:400;
+  text-align:center;
+  line-height:1;
+  transition:transform .12s var(--ease);
+  will-change:transform;
+  z-index:1;
+}
+.tile.new{animation:tileAppear .18s var(--ease) both}
+.tile.merged{animation:tileMerge .18s var(--ease) both;z-index:2}
+@keyframes tileAppear{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes tileMerge{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+
+/* ═══════════════ TILE COLOURS ═══════════════ */
+.tile[data-val="2"]    {background:var(--t2);   color:var(--t2c)}
+.tile[data-val="4"]    {background:var(--t4);   color:var(--t4c)}
+.tile[data-val="8"]    {background:var(--t8);   color:var(--t8c)}
+.tile[data-val="16"]   {background:var(--t16);  color:var(--t16c)}
+.tile[data-val="32"]   {background:var(--t32);  color:var(--t32c)}
+.tile[data-val="64"]   {background:var(--t64);  color:var(--t64c)}
+.tile[data-val="128"]  {background:var(--t128); color:var(--t128c)}
+.tile[data-val="256"]  {background:var(--t256); color:var(--t256c)}
+.tile[data-val="512"]  {background:var(--t512); color:var(--t512c)}
+.tile[data-val="1024"] {background:var(--t1024);color:var(--t1024c)}
+.tile[data-val="2048"] {background:var(--t2048);color:var(--t2048c);box-shadow:0 0 40px rgba(201,186,155,.3)}
+.tile[data-val="4096"], .tile[data-val="8192"],
+.tile[data-val="16384"],.tile[data-val="32768"]{background:var(--thi);color:var(--thic);box-shadow:0 0 50px rgba(255,215,0,.25)}
+
+/* ═══════════════ OVERLAY (win/lose) ═══════════════ */
+.overlay{
+  position:absolute;inset:0;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;z-index:100;
+  background:rgba(6,6,6,.85);backdrop-filter:blur(10px);
+}
+.overlay.show{display:flex}
+.ov-emoji{font-size:3rem;animation:ov-in .5s var(--ease) both}
+.ov-title{font-family:var(--fd);font-size:clamp(2.5rem,8vw,5rem);text-transform:uppercase;letter-spacing:.03em;animation:ov-in .5s var(--ease) .08s both}
+.ov-sub{font-family:var(--fs);font-size:1rem;font-weight:300;color:var(--g5);animation:ov-in .5s var(--ease) .15s both}
+@keyframes ov-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+/* ═══════════════ INFO STRIP ═══════════════ */
+.info-strip{
+  width:100%;max-width:520px;margin-top:10px;
+  display:flex;gap:2px;
+}
+.is-cell{
+  flex:1;background:var(--g1);border:1px solid var(--g2);
+  padding:10px 12px;
+}
+.is-lbl{font-family:var(--fm);font-size:.46rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g5);margin-bottom:3px}
+.is-val{font-family:var(--fd);font-size:1rem;letter-spacing:.04em;text-transform:uppercase}
+
+/* ═══════════════ HOW TO PLAY ═══════════════ */
+.howto{
+  width:100%;max-width:520px;margin-top:20px;
+  background:var(--g0);border:1px solid var(--g3);padding:18px 20px;
+}
+.ht-title{font-family:var(--fd);font-size:1.15rem;letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;color:var(--g6)}
+.ht-rows{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px}
+.ht-row{display:flex;align-items:flex-start;gap:7px;font-family:var(--fm);font-size:.52rem;letter-spacing:.08em;color:var(--g5);line-height:1.55}
+.ht-icon{font-size:1rem;flex-shrink:0;margin-top:-1px}
+
+/* ═══════════════ WA PROMO ═══════════════ */
+.wa-strip{
+  width:100%;max-width:520px;margin-top:8px;
+  background:var(--g1);border:1px solid var(--g3);padding:12px 16px;
+  display:flex;align-items:center;gap:12px;
+}
+.ws-txt{font-family:var(--fs);font-size:.9rem;font-weight:300;color:var(--g5);flex:1;line-height:1.4}
+.ws-btn{
+  display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+  font-family:var(--fm);font-size:.5rem;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--g5);border:1px solid var(--g3);padding:7px 10px;
+  transition:color .3s,border-color .3s;flex-shrink:0;
+}
+.ws-btn:hover{color:var(--white);border-color:var(--g5)}
+.ws-btn svg{width:10px;height:10px;fill:currentColor}
+
+/* ═══════════════ FOOTER ═══════════════ */
+.page-footer{
+  width:100%;max-width:520px;margin-top:16px;margin-bottom:12px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+.pf-copy{font-family:var(--fm);font-size:.48rem;letter-spacing:.14em;text-transform:uppercase;color:var(--g4)}
+.pf-links{display:flex;gap:16px;list-style:none}
+.pf-links a{font-family:var(--fm);font-size:.48rem;letter-spacing:.14em;text-transform:uppercase;color:var(--g4);transition:color .3s}
+.pf-links a:hover{color:var(--white)}
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+@media(max-width:600px){
+  .top-bar{padding:10px 16px}
+  .page{padding:64px 12px 40px}
+  .game-header{flex-direction:column;align-items:flex-start}
+  .scores{order:-1;align-self:flex-end}
+  .ht-rows{grid-template-columns:1fr}
+  .wa-strip{flex-direction:column;align-items:flex-start;gap:8px}
+  .ws-btn{width:100%;justify-content:center}
+}
+@media(max-width:400px){
+  .score-box{min-width:64px;padding:7px 10px}
+  .sb-val{font-size:1.3rem}
+}
+</style>
+</head>
+<body>
+<div id="grain" aria-hidden="true"></div>
+<div id="vig"   aria-hidden="true"></div>
+
+<!-- NAV -->
+<nav class="top-bar">
+  <a href="index.html" class="tbl">
+    <img src="image/logo.png" alt="Юпитер">
+    <span class="tbl-name">Юпитер</span>
+  </a>
+  <a href="index.html" class="tb-back">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    На сайт
+  </a>
+</nav>
+
+<div class="page" id="page">
+
+  <!-- HEADER -->
+  <div class="game-header">
+    <div class="gh-left">
+      <div class="gh-eyebrow">Фотосалон Юпитер · Игра</div>
+      <div class="gh-title">2048<em>складывай плитки до победы</em></div>
+      <div class="btn-row">
+        <button class="btn-game primary" id="btnNew" onclick="newGame()">
+          <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          Новая игра
+        </button>
+        <button class="btn-game" id="btnUndo" onclick="undoMove()" disabled>
+          <svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
+          Отмена
+        </button>
+      </div>
+    </div>
+    <div>
+      <div class="scores">
+        <div class="score-box" id="scoreBox">
+          <div class="sb-lbl">Счёт</div>
+          <div class="sb-val" id="scoreVal">0</div>
+          <div class="score-pop" id="scorePop"></div>
+        </div>
+        <div class="score-box" id="bestBox">
+          <div class="sb-lbl">Рекорд</div>
+          <div class="sb-val" id="bestVal">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOARD -->
+  <div class="board-wrap" id="boardWrap">
+    <!-- Background grid cells (cosmetic) -->
+    <div class="grid-bg" id="gridBg">
+      <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+      <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+      <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+      <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+    </div>
+    <!-- Tile layer -->
+    <div class="tiles-layer" id="tilesLayer"></div>
+    <!-- Win / Lose overlay -->
+    <div class="overlay" id="overlay">
+      <div class="ov-emoji" id="ovEmoji">🎉</div>
+      <div class="ov-title" id="ovTitle">Победа!</div>
+      <div class="ov-sub"   id="ovSub">Ты достиг 2048</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn-game primary" onclick="newGame()">Новая игра</button>
+        <button class="btn-game" id="ovContinue" onclick="continueGame()" style="display:none">Продолжить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO STRIP -->
+  <div class="info-strip">
+    <div class="is-cell"><div class="is-lbl">Цель</div><div class="is-val">2048</div></div>
+    <div class="is-cell"><div class="is-lbl">Ходов</div><div class="is-val" id="movesVal">0</div></div>
+    <div class="is-cell"><div class="is-lbl">Макс. плитка</div><div class="is-val" id="maxVal">—</div></div>
+    <div class="is-cell"><div class="is-lbl">Статус</div><div class="is-val" id="statusVal">Играй</div></div>
+  </div>
+
+  <!-- HOW TO PLAY -->
+  <div class="howto">
+    <div class="ht-title">Как играть</div>
+    <div class="ht-rows">
+      <div class="ht-row"><span class="ht-icon">⌨️</span><span>ПК: стрелки ← ↑ ↓ → или WASD для хода</span></div>
+      <div class="ht-row"><span class="ht-icon">👆</span><span>Телефон: свайп в нужном направлении</span></div>
+      <div class="ht-row"><span class="ht-icon">✨</span><span>Одинаковые плитки складываются при столкновении</span></div>
+      <div class="ht-row"><span class="ht-icon">🎯</span><span>Цель — получить плитку 2048 (или больше!)</span></div>
+    </div>
+  </div>
+
+  <!-- WA PROMO -->
+  <div class="wa-strip">
+    <span class="ws-txt">Распечатайте скриншот рекорда в фотосалоне Юпитер — ул. Толстого 62!</span>
+    <a href="https://wa.me/77772374343?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!%20%D0%A5%D0%BE%D1%87%D1%83%20%D0%BD%D0%B0%D0%BF%D0%B5%D1%87%D0%B0%D1%82%D0%B0%D1%82%D1%8C%20%D1%84%D0%BE%D1%82%D0%BE" class="ws-btn" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp
+    </a>
+  </div>
+
+  <footer class="page-footer">
+    <span class="pf-copy">© <span id="yr"></span> Фотосалон Юпитер · Костанай</span>
+    <ul class="pf-links">
+      <li><a href="index.html#services">Услуги</a></li>
+      <li><a href="qrgen.html">QR-коды</a></li>
+      <li><a href="converter.html">Конвертер</a></li>
+      <li><a href="index.html#contact">Контакты</a></li>
+    </ul>
+  </footer>
+
+</div><!-- /page -->
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   2048 GAME ENGINE
+═══════════════════════════════════════════════════════ */
+
+var SIZE    = 4;
+var GOAL    = 2048;
+
+// State
+var board    = [];   // [row][col] = value (0 = empty)
+var score    = 0;
+var best     = 0;
+var moves    = 0;
+var won      = false;
+var over     = false;
+var keepGoing = false;
+
+// For undo
+var prevBoard = null;
+var prevScore = 0;
+var prevMoves = 0;
+
+// Visual: tile elements map by id
+var tileEls  = {};
+var tileId   = 0;
+
+// Gap / cell size computed from DOM
+var cellSize = 0;
+var gap      = 0;
+
+/* ─── INIT ─── */
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  loadBest();
+  newGame();
+  bindKeys();
+  bindTouch();
+  bindResize();
+  computeSizes();
+});
+
+function loadBest(){
+  try{ best = parseInt(localStorage.getItem('j2048best')||'0')||0; } catch(e){ best=0; }
+  updateBestDisplay();
+}
+function saveBest(){
+  try{ localStorage.setItem('j2048best', String(best)); } catch(e){}
+}
+
+/* ─── NEW GAME ─── */
+function newGame(){
+  board   = emptyBoard();
+  score   = 0;
+  moves   = 0;
+  won     = false;
+  over    = false;
+  keepGoing = false;
+  prevBoard = null;
+  tileEls = {};
+  tileId  = 0;
+
+  clearTilesLayer();
+  hideOverlay();
+  addRandom(true);
+  addRandom(true);
+  updateScoreDisplay(0);
+  updateMeta();
+  document.getElementById('btnUndo').disabled = true;
+}
+
+function continueGame(){
+  keepGoing = true;
+  hideOverlay();
+}
+
+/* ─── BOARD UTILS ─── */
+function emptyBoard(){
+  var b = [];
+  for(var r=0;r<SIZE;r++){b[r]=[];for(var c=0;c<SIZE;c++)b[r][c]=0;}
+  return b;
+}
+
+function emptyCells(){
+  var cells = [];
+  for(var r=0;r<SIZE;r++)for(var c=0;c<SIZE;c++)if(!board[r][c])cells.push({r:r,c:c});
+  return cells;
+}
+
+function addRandom(silent){
+  var empty = emptyCells();
+  if(!empty.length) return false;
+  var pos = empty[Math.floor(Math.random()*empty.length)];
+  var val = Math.random() < 0.9 ? 2 : 4;
+  board[pos.r][pos.c] = val;
+  spawnTile(pos.r, pos.c, val, silent ? '' : 'new');
+  return true;
+}
+
+function copyBoard(b){
+  var nb = [];
+  for(var r=0;r<SIZE;r++){nb[r]=[];for(var c=0;c<SIZE;c++)nb[r][c]=b[r][c];}
+  return nb;
+}
+
+/* ─── MOVE LOGIC ─── */
+// Slide one row/column vector left → returns {row, score, changed}
+function slideLeft(row){
+  var a = row.filter(function(v){return v>0;});
+  var added = 0;
+  for(var i=0;i<a.length-1;i++){
+    if(a[i]===a[i+1]){
+      a[i] *= 2;
+      added += a[i];
+      a.splice(i+1,1);
+    }
+  }
+  while(a.length<SIZE) a.push(0);
+  return {row:a, score:added};
+}
+
+function move(dir){
+  // dir: 0=left 1=right 2=up 3=down
+  if(over && !keepGoing) return;
+
+  // Save for undo
+  prevBoard = copyBoard(board);
+  prevScore = score;
+  prevMoves = moves;
+
+  var changed = false;
+  var gained  = 0;
+
+  // Build abstract rows depending on direction, slide, write back
+  if(dir===0){ // left
+    for(var r=0;r<SIZE;r++){
+      var res = slideLeft(board[r].slice());
+      if(!rowEq(board[r],res.row)) changed=true;
+      board[r]=res.row; gained+=res.score;
+    }
+  } else if(dir===1){ // right
+    for(var r=0;r<SIZE;r++){
+      var rev = board[r].slice().reverse();
+      var res = slideLeft(rev);
+      var rowBack = res.row.slice().reverse();
+      if(!rowEq(board[r],rowBack)) changed=true;
+      board[r]=rowBack; gained+=res.score;
+    }
+  } else if(dir===2){ // up
+    for(var cc=0;cc<SIZE;cc++){
+      var col = [];
+      for(var rr=0;rr<SIZE;rr++) col.push(board[rr][cc]);
+      var res = slideLeft(col.slice());
+      if(!rowEq(col,res.row)) changed=true;
+      for(var rr=0;rr<SIZE;rr++) board[rr][cc]=res.row[rr];
+      gained+=res.score;
+    }
+  } else { // down (dir===3)
+    for(var cc=0;cc<SIZE;cc++){
+      var col = [];
+      for(var rr=0;rr<SIZE;rr++) col.push(board[rr][cc]);
+      var colRev = col.slice().reverse();
+      var res = slideLeft(colRev);
+      var rowBack = res.row.slice().reverse();
+      if(!rowEq(col,rowBack)) changed=true;
+      for(var rr=0;rr<SIZE;rr++) board[rr][cc]=rowBack[rr];
+      gained+=res.score;
+    }
+  }
+
+  if(!changed){ prevBoard=null; return; } // no move — no undo save
+
+  moves++;
+  score += gained;
+  if(score > best){ best=score; saveBest(); updateBestDisplay(true); }
+
+  // Rebuild tiles from board state
+  rebuildTiles(gained);
+  addRandom(false);
+  updateScoreDisplay(gained);
+  updateMeta();
+  checkWinLose();
+  document.getElementById('btnUndo').disabled = false;
+}
+
+/* ─── UNDO ─── */
+function undoMove(){
+  if(!prevBoard) return;
+  board = prevBoard;
+  score = prevScore;
+  moves = prevMoves;
+  prevBoard = null;
+  tileEls = {};
+  tileId  = 0;
+  clearTilesLayer();
+  for(var r=0;r<SIZE;r++)for(var c=0;c<SIZE;c++)if(board[r][c])spawnTile(r,c,board[r][c],'');
+  updateScoreDisplay(0);
+  updateMeta();
+  document.getElementById('btnUndo').disabled = true;
+  over = false; won = false; keepGoing = false;
+  hideOverlay();
+}
+
+/* ─── WIN / LOSE CHECK ─── */
+function checkWinLose(){
+  // Win
+  if(!keepGoing && !won){
+    for(var r=0;r<SIZE;r++)for(var c=0;c<SIZE;c++){
+      if(board[r][c]>=GOAL){ won=true; showOverlay('win'); return; }
+    }
+  }
+  // Lose: no empty and no possible merges
+  if(emptyCells().length) return;
+  for(var r=0;r<SIZE;r++){
+    for(var c=0;c<SIZE;c++){
+      var v=board[r][c];
+      if(r<SIZE-1 && board[r+1][c]===v) return;
+      if(c<SIZE-1 && board[r][c+1]===v) return;
+    }
+  }
+  over=true; showOverlay('lose');
+}
+
+/* ─── TILES RENDERING ─── */
+function computeSizes(){
+  var wrap = document.getElementById('boardWrap');
+  var w    = wrap.offsetWidth;
+  // gap is 10px, but we set it via CSS var so tiles match
+  // detect from grid-bg padding
+  var gb   = document.getElementById('gridBg');
+  var gStyle = window.getComputedStyle(gb);
+  gap = parseFloat(gStyle.gap)||10;
+  // CSS: gap=10 padding=10, cells=(w - 2*gap - 3*gap) / 4
+  // Actually: gridBg width = wrap width; cellSize = (gridBgClientWidth - padding*2 - gap*3) / 4
+  var gbW = gb.clientWidth;
+  cellSize = (gbW - gap*2 - gap*3) / 4;
+  // Update CSS var on tilesLayer
+  var tl = document.getElementById('tilesLayer');
+  tl.style.setProperty('--cs', cellSize+'px');
+  // Re-position all tiles
+  for(var id in tileEls){
+    var el = tileEls[id];
+    var r  = parseInt(el.dataset.r);
+    var c  = parseInt(el.dataset.c);
+    positionTile(el, r, c);
+    el.style.width  = cellSize+'px';
+    el.style.height = cellSize+'px';
+    el.style.fontSize = tileFontSize(parseInt(el.dataset.val))+'px';
+  }
+}
+
+function bindResize(){
+  var timer;
+  window.addEventListener('resize', function(){
+    clearTimeout(timer);
+    timer = setTimeout(computeSizes, 80);
+  });
+}
+
+function positionTile(el, r, c){
+  el.style.left = (c*(cellSize+gap))+'px';
+  el.style.top  = (r*(cellSize+gap))+'px';
+}
+
+function tileFontSize(val){
+  var digits = String(val).length;
+  var base   = cellSize * 0.44;
+  if(digits>=5) return Math.max(base*0.48, 12);
+  if(digits===4) return Math.max(base*0.6, 14);
+  if(digits===3) return Math.max(base*0.72, 16);
+  return Math.max(base, 18);
+}
+
+function spawnTile(r, c, val, cls){
+  computeSizes();
+  var el = document.createElement('div');
+  el.className   = 'tile' + (cls ? ' '+cls : '');
+  el.dataset.val = val;
+  el.dataset.r   = r;
+  el.dataset.c   = c;
+  el.dataset.id  = ++tileId;
+  el.style.width  = cellSize+'px';
+  el.style.height = cellSize+'px';
+  el.style.fontSize = tileFontSize(val)+'px';
+  positionTile(el, r, c);
+  el.textContent = val;
+  document.getElementById('tilesLayer').appendChild(el);
+  tileEls[tileId] = el;
+  return el;
+}
+
+function clearTilesLayer(){
+  document.getElementById('tilesLayer').innerHTML = '';
+}
+
+function rebuildTiles(gained){
+  // Remove all existing tile elements
+  clearTilesLayer();
+  tileEls = {};
+  tileId  = 0;
+  // Spawn tiles for current board state
+  for(var r=0;r<SIZE;r++){
+    for(var c=0;c<SIZE;c++){
+      if(board[r][c]){
+        // Mark highest as merged if gained > 0 and this cell has the merge value
+        // (simplified: just spawn all; merges are already in board)
+        spawnTile(r, c, board[r][c], '');
+      }
+    }
+  }
+}
+
+/* ─── SCORE & META ─── */
+function updateScoreDisplay(gained){
+  document.getElementById('scoreVal').textContent = score;
+  if(gained > 0){
+    var pop = document.getElementById('scorePop');
+    pop.textContent = '+' + gained;
+    pop.classList.remove('fire');
+    void pop.offsetWidth; // reflow
+    pop.classList.add('fire');
+  }
+}
+function updateBestDisplay(shine){
+  document.getElementById('bestVal').textContent = best;
+  if(shine){
+    var el = document.getElementById('bestBox');
+    el.style.animation='none';
+    void el.offsetWidth;
+    el.style.animation='bestShine .6s ease 3';
+  }
+}
+function updateMeta(){
+  document.getElementById('movesVal').textContent = moves;
+  var max = 0;
+  for(var r=0;r<SIZE;r++)for(var c=0;c<SIZE;c++)if(board[r][c]>max)max=board[r][c];
+  document.getElementById('maxVal').textContent   = max || '—';
+  document.getElementById('statusVal').textContent = over ? 'Финиш' : won && !keepGoing ? 'Победа!' : 'Играй';
+}
+
+/* ─── OVERLAY ─── */
+function showOverlay(type){
+  var ov = document.getElementById('overlay');
+  ov.classList.add('show');
+  if(type==='win'){
+    document.getElementById('ovEmoji').textContent = '🏆';
+    document.getElementById('ovTitle').textContent = 'Победа!';
+    document.getElementById('ovSub').textContent   = 'Ты достиг 2048! Счёт: '+score;
+    document.getElementById('ovContinue').style.display = 'inline-flex';
+  } else {
+    document.getElementById('ovEmoji').textContent = '😞';
+    document.getElementById('ovTitle').textContent = 'Игра окончена';
+    document.getElementById('ovSub').textContent   = 'Нет доступных ходов. Счёт: '+score;
+    document.getElementById('ovContinue').style.display = 'none';
+  }
+}
+function hideOverlay(){
+  document.getElementById('overlay').classList.remove('show');
+}
+
+/* ─── KEYBOARD ─── */
+function bindKeys(){
+  document.addEventListener('keydown', function(e){
+    var map = {
+      ArrowLeft:0, a:0, A:0,
+      ArrowRight:1, d:1, D:1,
+      ArrowUp:2, w:2, W:2,
+      ArrowDown:3, s:3, S:3
+    };
+    if(map[e.key] !== undefined){
+      e.preventDefault();
+      move(map[e.key]);
+    }
+    // New game: N
+    if(e.key==='n'||e.key==='N') newGame();
+    // Undo: Z or Ctrl+Z
+    if((e.key==='z'||e.key==='Z') && !e.ctrlKey) undoMove();
+    if(e.key==='z' && e.ctrlKey){ e.preventDefault(); undoMove(); }
+  });
+}
+
+/* ─── TOUCH / SWIPE ─── */
+function bindTouch(){
+  var bw = document.getElementById('boardWrap');
+  var tx=0, ty=0, dragging=false;
+  var MIN_SWIPE = 30;
+
+  bw.addEventListener('touchstart', function(e){
+    if(e.touches.length!==1) return;
+    tx = e.touches[0].clientX;
+    ty = e.touches[0].clientY;
+    dragging = true;
+  },{passive:true});
+
+  bw.addEventListener('touchmove', function(e){
+    if(!dragging) return;
+    e.preventDefault();
+  },{passive:false});
+
+  bw.addEventListener('touchend', function(e){
+    if(!dragging) return;
+    dragging = false;
+    var dx = e.changedTouches[0].clientX - tx;
+    var dy = e.changedTouches[0].clientY - ty;
+    if(Math.abs(dx)<MIN_SWIPE && Math.abs(dy)<MIN_SWIPE) return;
+    if(Math.abs(dx) > Math.abs(dy)){
+      move(dx>0?1:0);
+    } else {
+      move(dy>0?3:2);
+    }
+  },{passive:true});
+}
+
+/* ─── HELPERS ─── */
+function rowEq(a,b){
+  for(var i=0;i<SIZE;i++) if(a[i]!==b[i]) return false;
+  return true;
+}
+</script>
+</body>
+</html>
